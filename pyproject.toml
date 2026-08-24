@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where=["src"]
+
+[project]
+name = "bootcamp2026"
+version = "0.0.1"
+authors = [
+  {name = "yDewolf", email = "andrersng@gmail.com"},
+]
+
+requires-python = ">=3.13"
+dependencies = []
