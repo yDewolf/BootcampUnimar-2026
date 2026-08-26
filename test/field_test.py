@@ -1,9 +1,10 @@
+from dataclasses import field
 from typing import Optional
 from leety.common.protocols.field.field_model import Field, FieldModel
 
 class TestFields(FieldModel):
     test_field: Field[float]
-    optional_field: Field[Optional[str]] = Field(default_value=None)
+    optional_field: Field[Optional[str]] = Field(default=None)
 
 fields = TestFields(test_field=10)
 assert fields.header_keys() == ("test_field", "optional_field")

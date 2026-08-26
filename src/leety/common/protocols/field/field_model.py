@@ -11,11 +11,11 @@ class Field[valueType: Any]:
 
     def __init__(
         self, 
-        default_value: Optional[valueType] = None, 
+        default: Optional[valueType] = None, 
         id: str = "", 
         value_type_hint: Optional[Type[valueType]] = None
     ):
-        self._default_value = default_value
+        self._default_value = default
         self._field_id = id
         if value_type_hint:
             self._type_hint = value_type_hint
