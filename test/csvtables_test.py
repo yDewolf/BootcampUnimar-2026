@@ -2,8 +2,8 @@
 from typing import Optional
 
 from leety.common.protocols.csvbase.csv_table import  IndexableTable, Table
-from leety.common.protocols.field.default_fields import IdField, IndexableFieldModel
-from leety.common.protocols.field.field_model import Field, FieldModel
+from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel
+from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 
 class ValidIndexableModel(IndexableFieldModel[int]):

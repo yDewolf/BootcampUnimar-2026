@@ -1,6 +1,6 @@
 from typing import Optional, Type, get_origin, get_type_hints
 
-from leety.common.protocols.field.field_model import Field, FieldModel
+from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 class IdField[idType: Optional[str | int]](Field[idType]):
     def __init__(self, default: idType | None = None, frozen: bool = False, id: str = "", value_type_hint: type[idType] | None = None):

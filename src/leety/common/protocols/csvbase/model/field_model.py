@@ -1,7 +1,7 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints, overload
-from leety.common.protocols.field.field_exceptions import FieldMissingValue
-from leety.common.protocols.field.type_protocols import TableProtocol
+from leety.common.protocols.csvbase.model.field_exceptions import FieldMissingValue
+from leety.common.protocols.csvbase.model.type_protocols import TableProtocol
 from leety.common.utils.type_utils import is_type_optional
 
 class Field[valueType: Any]:
@@ -35,11 +35,11 @@ class Field[valueType: Any]:
         if not self._field_id:
             self._field_id = name
 
-    # Acesso via classe: FieldModel.field -> Field[valueType]
+    # Acesso via classe: FieldModel.model. -> Field[valueType]
     @overload
     def __get__(self, instance: None, owner: type) -> "Field[valueType]": ...
 
-    # Acesso via instância: model_instance.field -> valueType
+    # Acesso via instância: model_instance.model. -> valueType
     @overload
     def __get__(self, instance: Any, owner: type) -> valueType: ...
 
@@ -52,7 +52,7 @@ class Field[valueType: Any]:
         
         return instance._data.get(self._field_id, self.default_value)
 
-    # Exemplo: field_model.field = value
+    # Exemplo: field_model.model. = value
     # ao invés de fazer a variável field ser = a value isso aqui faz field.value = value
     def __set__(self, instance: Any, new_value: Optional[valueType]) -> None:
         if not hasattr(instance, "_data"):
@@ -101,6 +101,7 @@ class Field[valueType: Any]:
     def _bake_is_required(self):
         is_optional = is_type_optional(self._type_hint)
         self._is_required = not is_optional
+
 
 @dataclass_transform(field_specifiers=(Field,), kw_only_default=True)
 class FieldModel:

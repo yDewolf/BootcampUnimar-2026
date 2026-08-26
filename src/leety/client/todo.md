@@ -1,0 +1,2 @@
+- [ ] implementar uma interface simples usando input() para abstrair as funções do servidor (já que não vai rolar fazer um server HTTP)
+- [ ] implementar sessões simples (salvar o usuário e senha** em um arquivo .cfg) para evitar ter que ficar logando toda vez

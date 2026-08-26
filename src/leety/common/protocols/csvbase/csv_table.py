@@ -2,8 +2,8 @@ from types import get_original_bases
 from typing import Any, Optional, TypeVar, get_args, get_origin
 import uuid
 
-from leety.common.protocols.field.default_fields import IndexableFieldModel
-from leety.common.protocols.field.field_model import Field, FieldModel
+from leety.common.protocols.csvbase.model.default_models import IndexableFieldModel
+from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 
 class Table[model: FieldModel]:
@@ -105,7 +105,7 @@ class Table[model: FieldModel]:
             if value is not None:
                 self._unique_columns[key].discard(value)
 
-    # Chamado pelo Field quando field_model.field = <value>
+    # Chamado pelo Field quando field_model.model. = <value>
     def _swap_unique_value(self, field_name: str, old_value: Any, new_value: Any):
         if new_value == old_value:
             return
@@ -125,6 +125,7 @@ class Table[model: FieldModel]:
         value_strings = [row.to_csv_str(include_header=False) for row in self._rows]
 
         return f"{header_str}\n{"\n".join(value_strings)}"
+
 
 class IndexableTable[model: IndexableFieldModel](Table[model]):
     _table_index: dict[str, model]
