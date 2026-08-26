@@ -1,8 +1,8 @@
 from types import get_original_bases
-from typing import Optional, TypeVar, get_args, get_origin
+from typing import Any, Optional, TypeVar, get_args, get_origin
 import uuid
 
-from leety.common.protocols.field.default_fields import IdField, IndexableFieldModel
+from leety.common.protocols.field.default_fields import IndexableFieldModel
 from leety.common.protocols.field.field_model import Field, FieldModel
 
 
@@ -10,8 +10,13 @@ class Table[model: FieldModel]:
     _rows: list[model]
     _model_cls: type[FieldModel]
 
+    _unique_columns: dict[str, list[Any]]
+
     def __init__(self):
         self._rows = []
+        self._unique_columns = {
+            key: [] for key in self._model_cls._unique_fields
+        }
 
     @classmethod
     def model_cls(cls) -> type[model]:
@@ -66,11 +71,36 @@ class Table[model: FieldModel]:
             if row in self._rows: 
                 raise Exception(f"Row already exists in table {self.__class__.__name__}: {self}")
 
+        self._validate_unique_columns(row)
         self._rows.append(row)
+        self._update_unique_columns(row)
         return len(self._rows) - 1 # index do row que acabou de ser adicionado
 
     def remove_row(self, row: model):
         self._rows.remove(row)
+
+    def _validate_unique_columns(self, new_row: model):
+        for key in self._unique_columns:
+            value = getattr(new_row, key, None)
+            if value == None: continue
+            if value in self._unique_columns[key]:
+                raise Exception(f"Value {value} already exists in unique column {key}")
+
+            self._unique_columns[key].append(value)
+
+    # TODO: implement proper way of updating this when rows are removed
+    def _update_unique_columns(self, new_row: model):
+        for key in self._unique_columns:
+            value = getattr(new_row, key, None)
+            if value == None: continue
+            self._unique_columns[key].append(value)
+
+
+    def to_csv_str(self) -> str:
+        header_str = ",".join(self.model_cls().header_keys())
+        value_strings = [row.to_csv_str(include_header=False) for row in self._rows]
+
+        return f"{header_str}\n{"\n".join(value_strings)}"
 
 class IndexableTable[model: IndexableFieldModel](Table[model]):
     _table_index: dict[str, model]
@@ -132,10 +162,10 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
 
         row.id = new_id
         
-
+    # isso aqui é meio placeholder
     def _auto_str_id(self, row: model):
         new_id = str(uuid.uuid4())
         while new_id in self._table_index:
             new_id = str(uuid.uuid4())
-            
+        
         row.id = new_id

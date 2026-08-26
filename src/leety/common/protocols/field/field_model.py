@@ -5,20 +5,26 @@ from leety.common.utils.type_utils import is_type_optional
 
 class Field[valueType: Any]:
     _field_id: str
+
+    # Field Modifiers:
     _is_required: Optional[bool] = None
+    _is_unique: bool = False
+    _is_frozen: bool = False
+
     _default_value: Optional[valueType]
     _type_hint: Type[valueType]
-    frozen: bool
 
     def __init__(
         self, 
         default: Optional[valueType] = None, 
         id: str = "", 
         frozen: bool = False,
+        unique: bool = False,
         value_type_hint: Optional[Type[valueType]] = None
     ):
         self._default_value = default
-        self.frozen = frozen
+        self._is_frozen = frozen
+        self._is_unique = unique
         self._field_id = id
         if value_type_hint:
             self._type_hint = value_type_hint
@@ -51,7 +57,7 @@ class Field[valueType: Any]:
         if not hasattr(instance, "_data"):
             instance._data = {}
 
-        if self.frozen and self._field_id in instance._data:
+        if self._is_frozen and self._field_id in instance._data:
             raise AttributeError(f"{Field} {self._field_id} is imutable and can't be modified")
         
         instance._data[self._field_id] = new_value
@@ -71,6 +77,14 @@ class Field[valueType: Any]:
         return self._default_value
 
     @property
+    def frozen(self) -> bool:
+        return self._is_frozen
+
+    @property
+    def unique(self) -> bool:
+        return self._is_unique
+
+    @property
     def is_required(self) -> bool:
         if self._is_required is None and self._type_hint:
             self._bake_is_required()
@@ -84,6 +98,7 @@ class Field[valueType: Any]:
 @dataclass_transform(field_specifiers=(Field,), kw_only_default=True)
 class FieldModel:
     _header_keys: tuple[str, ...]
+    _unique_fields: tuple[str, ...]
     _data: dict[str, Any] = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -129,17 +144,27 @@ class FieldModel:
     @classmethod
     def _setup_field_descriptors(cls):
         hints = get_type_hints(cls)
+        unique_fields: list[str] = []
         for field_name in cls.header_keys():
-            hint = hints[field_name]
+            field_instance: Optional[Field[Any]] = getattr(cls, field_name, None)
 
+            hint = hints[field_name]
             origin = get_origin(hint) or hint
-            if not issubclass(origin, Field): continue
             args = get_args(hint)
-            value_type = args[0] if args else Any
+            value_type = args[0] if args else type[Any]
             # if len(args) > 1: #TODO WARNING: avisar que provavelmente tem algo de errado com o field e ele provavelmente não vai ser interpretado corretamente
-            
-            field_instance = hint(id=field_name, value_type_hint=value_type)
-            setattr(cls, field_name, field_instance)
+            if field_instance == None:
+                if not issubclass(origin, Field): continue
+
+                field_instance = hint(id=field_name, value_type_hint=value_type)
+                setattr(cls, field_name, field_instance)
+
+            if field_instance:
+                field_instance._type_hint = value_type
+                if field_instance._is_unique:
+                    unique_fields.append(field_name)
+
+        cls._unique_fields = tuple(unique_fields)
 
     def to_csv_str(self, include_header: bool = False) -> str:
         field_values: list[Field] = [
