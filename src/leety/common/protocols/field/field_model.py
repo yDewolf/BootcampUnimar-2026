@@ -1,9 +1,9 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints
-from leety.common.protocols.database_exceptions import FieldMissingValue
+from leety.common.protocols.field.field_exceptions import FieldMissingValue
 from leety.common.utils.type_utils import is_type_optional
 
-class CSVField[valueType: Any]:
+class Field[valueType: Any]:
     _field_id: str
     _is_required: Optional[bool] = None
     _value: valueType
@@ -59,7 +59,7 @@ class FieldModel:
 
     def validate(self):
         for field_name in self.header_keys():
-            field_obj: CSVField = getattr(self, field_name)
+            field_obj: Field = getattr(self, field_name)
             field_obj.validate()
 
     # Instancia os CSVField com base nas anotações de tipo do FieldModel 
@@ -70,12 +70,12 @@ class FieldModel:
             
             # Instanciação e atribuição dos fields no objeto dessa classe
             origin = get_origin(hint)
-            if not origin is CSVField: continue
+            if not origin is Field: continue
             args = get_args(hint)
             value_type = args[0] if args else Any
             # if len(args) > 1: #TODO WARNING: avisar que provavelmente tem algo de errado com o field e ele provavelmente não vai ser interpretado corretamente
             
-            field_instance = CSVField(data_dict.get(field_name), field_name, value_type)
+            field_instance = Field(data_dict.get(field_name), field_name, value_type)
             setattr(self, field_name, field_instance)
 
     @classmethod
@@ -87,14 +87,23 @@ class FieldModel:
         hints = get_type_hints(cls)
         header_keys: tuple[str, ...] = tuple([
             key for key, type_hint in hints.items() 
-            if (get_origin(type_hint) is CSVField)
+            if (get_origin(type_hint) is Field)
         ])
 
         cls._header_keys = header_keys
         return cls._header_keys
 
-    def __str__(self):
-        values = [
+    def to_csv_str(self, include_header: bool = False) -> str:
+        fields: list[Field] = [
             getattr(self, key) for key in self.header_keys()
         ]
-        return ",".join(values)
+        value_str = ",".join([str(field.value) for field in fields])
+        if not include_header:
+            return value_str
+        
+        header_str = ",".join(self.header_keys())
+        return header_str + "\n" + value_str
+        
+
+    def __str__(self):
+        return self.to_csv_str(include_header=True)
