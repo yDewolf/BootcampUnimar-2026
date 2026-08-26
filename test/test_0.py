@@ -6,7 +6,7 @@ class TestFields(FieldModel):
     optional_field: CSVField[Optional[str]]
 
 fields = TestFields(test_field=10)
-assert fields.header_keys() == ["test_field", "optional_field"]
+assert fields.header_keys() == ("test_field", "optional_field")
 assert fields.test_field.is_required == True
 assert fields.test_field.value == 10
 assert fields.optional_field.is_required == False

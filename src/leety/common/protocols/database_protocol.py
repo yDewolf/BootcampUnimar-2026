@@ -1,5 +1,5 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
-from typing import Any, Optional, Type, Union, dataclass_transform, get_args, get_origin, get_type_hints
+from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints
 from leety.common.protocols.database_exceptions import FieldMissingValue
 from leety.common.utils.type_utils import is_type_optional
 
@@ -47,7 +47,11 @@ class CSVField[valueType: Any]:
 
 @dataclass_transform()
 class FieldModel:
-    _header_keys: Optional[list[str]] = None
+    _header_keys: tuple[str, ...]
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        cls._bake_header_keys()
 
     def __init__(self, **kwargs):
         self._set_from_dict(kwargs)
@@ -61,40 +65,36 @@ class FieldModel:
     # Instancia os CSVField com base nas anotações de tipo do FieldModel 
     def _set_from_dict(self, data_dict: dict[str, Any]):
         hints = get_type_hints(self.__class__)
-        for field_name, hint in hints.items():
-            if field_name.startswith("_"):
-                continue
-
+        for field_name in self.header_keys():
+            hint = hints.get(field_name)
+            
             # Instanciação e atribuição dos fields no objeto dessa classe
             origin = get_origin(hint)
             if not origin is CSVField: continue
             args = get_args(hint)
+            value_type = args[0] if args else Any
             # if len(args) > 1: #TODO WARNING: avisar que provavelmente tem algo de errado com o field e ele provavelmente não vai ser interpretado corretamente
             
-            field_instance = CSVField(data_dict.get(field_name), field_name, args[0])
+            field_instance = CSVField(data_dict.get(field_name), field_name, value_type)
             setattr(self, field_name, field_instance)
 
     @classmethod
-    def header_keys(cls) -> list[str]:
-        header_keys: Optional[list[str]] = cls._header_keys
-        if not header_keys:
-            header_keys = cls._bake_header_keys()
-
-        return header_keys
+    def header_keys(cls) -> tuple[str, ...]:
+        return cls._header_keys
 
     @classmethod
-    def _bake_header_keys(cls) -> list[str]:
+    def _bake_header_keys(cls) -> tuple[str, ...]:
         hints = get_type_hints(cls)
-        header_keys: list[str] = [
-            key for key, type_hint in hints.items() if get_origin(type_hint) is CSVField
-        ]
+        header_keys: tuple[str, ...] = tuple([
+            key for key, type_hint in hints.items() 
+            if (get_origin(type_hint) is CSVField)
+        ])
 
         cls._header_keys = header_keys
         return cls._header_keys
 
     def __str__(self):
-        keys = self.header_keys()
         values = [
-            getattr(self, key) for key in keys
+            getattr(self, key) for key in self.header_keys()
         ]
         return ",".join(values)
