@@ -1,6 +1,7 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints, overload
 from leety.common.protocols.field.field_exceptions import FieldMissingValue
+from leety.common.protocols.field.type_protocols import TableProtocol
 from leety.common.utils.type_utils import is_type_optional
 
 class Field[valueType: Any]:
@@ -59,6 +60,12 @@ class Field[valueType: Any]:
 
         if self._is_frozen and self._field_id in instance._data:
             raise AttributeError(f"{Field} {self._field_id} is imutable and can't be modified")
+
+        if self._is_unique and hasattr(instance, "_table_ref"):
+            table: TableProtocol = instance._table_ref
+            old_value = instance._data.get(self._field_id)
+            # TODO: talvez pensar em uma forma melhor de fazer isso aqui
+            table._swap_unique_value(self._field_id, old_value, new_value)
         
         instance._data[self._field_id] = new_value
 
@@ -97,6 +104,8 @@ class Field[valueType: Any]:
 
 @dataclass_transform(field_specifiers=(Field,), kw_only_default=True)
 class FieldModel:
+    _table_ref: Optional[TableProtocol]
+
     _header_keys: tuple[str, ...]
     _unique_fields: tuple[str, ...]
     _data: dict[str, Any] = {}

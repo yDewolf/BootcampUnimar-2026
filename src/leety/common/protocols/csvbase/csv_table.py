@@ -10,12 +10,12 @@ class Table[model: FieldModel]:
     _rows: list[model]
     _model_cls: type[FieldModel]
 
-    _unique_columns: dict[str, list[Any]]
+    _unique_columns: dict[str, set[Any]]
 
     def __init__(self):
         self._rows = []
         self._unique_columns = {
-            key: [] for key in self._model_cls._unique_fields
+            key: set() for key in self._model_cls._unique_fields
         }
 
     @classmethod
@@ -72,12 +72,17 @@ class Table[model: FieldModel]:
                 raise Exception(f"Row already exists in table {self.__class__.__name__}: {self}")
 
         self._validate_unique_columns(row)
+        row._table_ref = self
+
         self._rows.append(row)
         self._update_unique_columns(row)
+
         return len(self._rows) - 1 # index do row que acabou de ser adicionado
 
     def remove_row(self, row: model):
+        row._table_ref = None
         self._rows.remove(row)
+        self._discard_unique_columns(row)
 
     def _validate_unique_columns(self, new_row: model):
         for key in self._unique_columns:
@@ -86,14 +91,33 @@ class Table[model: FieldModel]:
             if value in self._unique_columns[key]:
                 raise Exception(f"Value {value} already exists in unique column {key}")
 
-            self._unique_columns[key].append(value)
-
     # TODO: implement proper way of updating this when rows are removed
     def _update_unique_columns(self, new_row: model):
         for key in self._unique_columns:
             value = getattr(new_row, key, None)
             if value == None: continue
-            self._unique_columns[key].append(value)
+
+            self._unique_columns[key].add(value)
+
+    def _discard_unique_columns(self, removed_row: model):
+        for key in self._unique_columns:
+            value = getattr(removed_row, key, None)
+            if value is not None:
+                self._unique_columns[key].discard(value)
+
+    # Chamado pelo Field quando field_model.field = <value>
+    def _swap_unique_value(self, field_name: str, old_value: Any, new_value: Any):
+        if new_value == old_value:
+            return
+
+        if new_value is not None and new_value in self._unique_columns[field_name]:
+            raise ValueError(f"Value {new_value} already exists in unique column {field_name}")
+
+        if old_value is not None:
+            self._unique_columns[field_name].discard(old_value)
+        
+        if new_value is not None:
+            self._unique_columns[field_name].add(new_value)
 
 
     def to_csv_str(self) -> str:

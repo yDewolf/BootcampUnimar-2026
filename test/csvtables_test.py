@@ -23,6 +23,7 @@ assert valid_model0.id == 0
 table = Table[ValidIndexableModel]()
 table.add_row(valid_model)
 assert table.rows == [valid_model]
+valid_model.unique_field = "olá"
 
 table.add_row(valid_model0) # Isso aqui é permitido, mesmo que tenham o mesmo id, como não é indexável, os ids não importam
 assert table.rows == [valid_model, valid_model0]
