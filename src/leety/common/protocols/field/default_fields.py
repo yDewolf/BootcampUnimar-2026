@@ -1,12 +1,13 @@
-from typing import get_origin, get_type_hints
+from typing import Optional, Type, get_origin, get_type_hints
 
 from leety.common.protocols.field.field_model import Field, FieldModel
 
-class IdField[idType: str | int](Field[idType]):
-    pass
+class IdField[idType: Optional[str | int]](Field[idType]):
+    def __init__(self, default: idType | None = None, frozen: bool = False, id: str = "", value_type_hint: type[idType] | None = None):
+        super().__init__(default, id, frozen, value_type_hint=value_type_hint)
 
 class IndexableFieldModel[idType: str | int](FieldModel):
-    id: IdField[idType]
+    id: IdField[Optional[idType]]
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

@@ -8,14 +8,17 @@ class Field[valueType: Any]:
     _is_required: Optional[bool] = None
     _default_value: Optional[valueType]
     _type_hint: Type[valueType]
+    frozen: bool
 
     def __init__(
         self, 
         default: Optional[valueType] = None, 
         id: str = "", 
+        frozen: bool = False,
         value_type_hint: Optional[Type[valueType]] = None
     ):
         self._default_value = default
+        self.frozen = frozen
         self._field_id = id
         if value_type_hint:
             self._type_hint = value_type_hint
@@ -47,6 +50,9 @@ class Field[valueType: Any]:
     def __set__(self, instance: Any, new_value: Optional[valueType]) -> None:
         if not hasattr(instance, "_data"):
             instance._data = {}
+
+        if self.frozen and self._field_id in instance._data:
+            raise AttributeError(f"{Field} {self._field_id} is imutable and can't be modified")
         
         instance._data[self._field_id] = new_value
 
