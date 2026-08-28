@@ -7,10 +7,10 @@ APP_NAME = "Leety"
 DEFAULT_SIZE = (640, 480)
 
 class MainScreen(tk.Frame):
-    def __int__(self, parent):
+    def __init__(self, parent):
         super().__init__(parent)
         label = tk.Label(self, text="Main Screen")
-
+        label.pack(padx=20, pady=20)
 
 class AppRoot(tk.Tk):
     root_container: tk.Frame
@@ -26,10 +26,10 @@ class AppRoot(tk.Tk):
 
         self.root_container = tk.Frame(self)
         self.root_container.pack(fill="both", expand=True)
+        self.root_container.grid_rowconfigure(0, weight=1)
+        self.root_container.grid_columnconfigure(0, weight=1)
 
         self._setup_frames(frames, default_frame)
-        self._setup_widgets()
-
         self.change_to_screen(default_frame)
 
     def _setup_frames(self, frames: dict[str, type[tk.Frame]], default_frame: str):
@@ -44,16 +44,11 @@ class AppRoot(tk.Tk):
     def open_window(self):
         self.mainloop()
 
-    def _setup_widgets(self):
-        pass
-        # button = ttk.Button(self._root, text="Registrar conta", command=)
-
-
     def change_to_screen(self, target_screen: str):
         screen = self._frames.get(target_screen)
         if screen: 
             screen.tkraise()
-    
+
 
 app = AppRoot({
     "main": MainScreen,
