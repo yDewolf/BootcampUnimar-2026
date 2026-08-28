@@ -1,9 +1,11 @@
 from tkinter import ttk
 import tkinter as tk
 
-class RegisterScreen(tk.Frame):
-    def __init__(self, parent):
-        super().__init__(parent)
+from leety.client.ui.screens.screen_protocols import MFrame, ScreenManager
+
+class RegisterScreen(MFrame):
+    def __init__(self, parent: tk.Misc, controller: ScreenManager):
+        super().__init__(parent, controller)
         self._setup_widgets()
 
     def _setup_widgets(self):
