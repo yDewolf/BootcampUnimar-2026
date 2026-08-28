@@ -42,11 +42,14 @@ indexable.add_row(valid_model)
 assert indexable.rows == [valid_model]
 assert indexable._table_index == {str(valid_model.id): valid_model}
 assert indexable._searchable_index == {"test_searchable": {valid_model.test_searchable: [valid_model]}}
+assert indexable.match_field({ValidIndexableModel.test_searchable: valid_model.test_searchable}) == [valid_model]
+assert indexable.linear_match({ValidIndexableModel.test_searchable: valid_model.test_searchable}) == [valid_model]
+assert indexable.match_searchable_field({ValidIndexableModel.test_searchable: valid_model.test_searchable}) == [valid_model]
 
 indexable.remove_row_id(0)
 assert indexable.rows == []
 assert indexable._table_index == {}
-assert indexable._searchable_index == {"test_searchable": {valid_model.test_searchable: []}}
+assert indexable._searchable_index == {"test_searchable": {}}
 
 indexable.add_row(auto_id_model)
 assert auto_id_model.id == 1

@@ -2,7 +2,7 @@ from types import get_original_bases
 from typing import Any, Optional, TypeVar, get_args, get_origin
 import uuid
 
-from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel
+from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel, SearchableField
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 class Table[model: FieldModel]:
@@ -82,6 +82,24 @@ class Table[model: FieldModel]:
         row._table_ref = None
         self._rows.remove(row)
         self._discard_unique_columns(row)
+
+    def match_field(self, field_query: dict[Field | SearchableField, Any]) -> Optional[list[model]]:
+        return self.linear_match(field_query)
+    
+    def linear_match(self, field_query: dict[Field, Any], candidates: Optional[list[model]] = None) -> Optional[list[model]]:
+        matched_rows: list[model] = []
+        for row in candidates or self._rows:
+            match = True
+            for field, expected_value in field_query.items():
+                current_value = getattr(row, field.id)
+                if current_value != expected_value:
+                    match = False
+                    break
+
+            if match:
+                matched_rows.append(row)
+
+        return matched_rows
 
     def _validate_unique_columns(self, new_row: model):
         for key in self._unique_columns:
@@ -181,6 +199,51 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
         return self._table_index.get(str(row_id))
 
 
+    # TODO: talvez implementar um sistema melhor de queries para fazer algo tipo:
+    # where field = something and other_field = other
+    # só que usando classes para representar cada parte e depois fazer um interpretador de queries
+    def match_field(self, field_query: dict[Field | SearchableField, Any]) -> Optional[list[model]]:
+        if not field_query: return None
+
+        searchable_query: dict[SearchableField, Any] = {}
+        standard_query: dict[Field, Any] = {}
+        for field, value in field_query.items():
+            if isinstance(field, SearchableField):
+                searchable_query[field] = value
+                continue
+            
+            standard_query[field] = value
+
+        candidates: Optional[list[model]] = None
+        if searchable_query:
+            candidates = self.match_searchable_field(searchable_query)
+            # como aqui a gente tá pensando que tem que bater exatamente todas as condições
+            # a gente pode retornar caso essas condições já tenham falhado
+            if not candidates: return None
+        elif standard_query:
+            # se não houver searchable, mas houver query de fields normais
+            candidates = self._rows
+
+        if not standard_query: return candidates
+        matched_rows = self.linear_match(standard_query, candidates=candidates)
+        return matched_rows
+
+    def match_searchable_field(self, field_query: dict[SearchableField, Any]) -> Optional[list[model]]:
+        if not field_query: return None
+
+        candidate_matches: list[list[model]] = []
+        for field, expected_value in field_query.items():
+            matches: list[model] = self._searchable_index[field.id].get(expected_value, [])
+            if not matches: return None
+            candidate_matches.append(matches)
+
+        result_set = set(candidate_matches[0])
+        for matches in candidate_matches[1:]:
+            result_set.intersection_update(matches)
+
+        if not result_set: return None
+        return list(result_set)
+
     # Utility stuff:
 
     def _update_searchables(self, row: model):
@@ -203,7 +266,10 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
 
             value = getattr(row, field_name)
             if value is None: continue
-            self._searchable_index[field_name][str(value)].remove(row)
+            str_value = str(value)
+            self._searchable_index[field_name][str_value].remove(row)
+            if not self._searchable_index[field_name][str_value]:
+                del self._searchable_index[field_name][str_value]
 
 
     def _update_last_id(self, row: model):

@@ -29,6 +29,7 @@ db.users.add_row(test_user)
 assert db.users._rows == [test_user]
 assert db.users._searchable_index == {"description": {test_user.description: [test_user]}}
 
+db.users.match_field({UserModel.description: test_user.description})
 db.admins.add_row(AdminModel(id=None, user_id=test_user.id))
 
 db.users.remove_row_id(test_user.id)

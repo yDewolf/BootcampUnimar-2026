@@ -1,11 +1,19 @@
-from typing import Any, Optional, Type, get_origin, get_type_hints
+from typing import Any, Optional, Type, get_origin, get_type_hints, overload, override
 
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 from leety.common.utils.type_utils import get_attributes_of_type
 
 
 class SearchableField[valueType: Any](Field[valueType]):
-    pass
+    @overload
+    def __get__(self, instance: None, owner: type) -> "SearchableField[valueType]": ...
+
+    @overload
+    def __get__(self, instance: Any, owner: type) -> valueType: ...
+
+    @override
+    def __get__(self, instance, owner):
+        return super().__get__(instance, owner)
 
 class IdField[idType: Optional[str | int]](SearchableField[idType]):
     def __init__(self, default: idType | None = None, frozen: bool = False, id: str = "", value_type_hint: type[idType] | None = None):
