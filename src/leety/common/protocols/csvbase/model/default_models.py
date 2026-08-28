@@ -13,7 +13,7 @@ class IdField[idType: Optional[str | int]](SearchableField[idType]):
 
 class IndexableFieldModel[idType: str | int](FieldModel):
     id: IdField[Optional[idType]]
-    _searchables: tuple[str, ...]
+    _searchables: tuple[str, ...] = ()
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -25,14 +25,8 @@ class IndexableFieldModel[idType: str | int](FieldModel):
 
     @classmethod
     def _setup_searchables(cls):
-        searchable_fields = get_attributes_of_type(cls, SearchableField)
+        searchable_fields = get_attributes_of_type(cls, SearchableField, exclude=IdField)
         cls._searchables = tuple(searchable_fields)
-
-
-    # @classmethod
-    # def main_id(cls) -> IdField[Optional[idType]]:
-    #     return cls.id # type: ignore
-
 
     @classmethod
     def searchable_fields(cls) -> tuple[str, ...]:

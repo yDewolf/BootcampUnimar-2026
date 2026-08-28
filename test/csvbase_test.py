@@ -1,12 +1,13 @@
 
 from leety.common.database.csvbase import Database
 from leety.common.protocols.csvbase.csv_table import IndexableTable
-from leety.common.protocols.csvbase.model.default_models import IndexableFieldModel
+from leety.common.protocols.csvbase.model.default_models import IndexableFieldModel, SearchableField
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 
 class UserModel(IndexableFieldModel[int]):
     username: Field[str] = Field(unique=True)
+    description: SearchableField[str] = SearchableField(default=None)
     password: Field[str]
 
 
@@ -23,14 +24,16 @@ db = TestDatabase()
 assert db.get_table("users") == db.users
 assert db.get_table("admins") == db.admins
 
-test_user = UserModel(id=None, username="testUser", password="123456")
+test_user = UserModel(id=None, username="testUser", password="123456", description="hello I'm your neighbour")
 db.users.add_row(test_user)
 assert db.users._rows == [test_user]
+assert db.users._searchable_index == {"description": {test_user.description: [test_user]}}
 
 db.admins.add_row(AdminModel(id=None, user_id=test_user.id))
-assert db.admins.get_by_id(test_user.id)
 
 db.users.remove_row_id(test_user.id)
+assert db.users._searchable_index == {"description": {}}
+
 db.admins.remove_row_id(test_user.id)
 
 pass

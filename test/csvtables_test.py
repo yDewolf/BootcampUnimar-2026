@@ -2,19 +2,20 @@
 from typing import Optional
 
 from leety.common.protocols.csvbase.csv_table import  IndexableTable, Table
-from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel
+from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel, SearchableField
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 
 
 class ValidIndexableModel(IndexableFieldModel[int]):
     field_0: Field[Optional[str]] = Field(default=None)
     unique_field: Field[Optional[str]] = Field(default=None, unique=True)
+    test_searchable: SearchableField[Optional[str]] = SearchableField(default=None)
 
 # class InvalidIndexableModel(IndexableFieldModel[int]):
 #     field_0: IdField[str]
 # invalid_model = InvalidIndexableModel(id="A", field_0="B")
 
-valid_model = ValidIndexableModel(id=0, unique_field="oi")
+valid_model = ValidIndexableModel(id=0, unique_field="oi", test_searchable="olá eu sou seu vizinho !!")
 valid_model0 = ValidIndexableModel(id=0)
 auto_id_model = ValidIndexableModel(id=None)
 assert valid_model.id == 0
@@ -40,10 +41,12 @@ indexable.add_row(valid_model)
 # indexable.add_row(valid_model) -> duplicidade
 assert indexable.rows == [valid_model]
 assert indexable._table_index == {str(valid_model.id): valid_model}
+assert indexable._searchable_index == {"test_searchable": {valid_model.test_searchable: [valid_model]}}
 
 indexable.remove_row_id(0)
 assert indexable.rows == []
 assert indexable._table_index == {}
+assert indexable._searchable_index == {"test_searchable": {valid_model.test_searchable: []}}
 
 indexable.add_row(auto_id_model)
 assert auto_id_model.id == 1
