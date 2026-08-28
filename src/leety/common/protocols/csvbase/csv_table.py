@@ -2,9 +2,8 @@ from types import get_original_bases
 from typing import Any, Optional, TypeVar, get_args, get_origin
 import uuid
 
-from leety.common.protocols.csvbase.model.default_models import IndexableFieldModel
+from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
-
 
 class Table[model: FieldModel]:
     _rows: list[model]
@@ -129,12 +128,24 @@ class Table[model: FieldModel]:
 
 class IndexableTable[model: IndexableFieldModel](Table[model]):
     _table_index: dict[str, model]
+    _searchable_index: dict[str, set[tuple[model, Any]]]
     _last_inserted_int_id: int
 
     def __init__(self):
+        super().__init__()
         self._table_index = {}
         self._last_inserted_int_id = 0
-        super().__init__()
+        self._setup_table_index()
+
+    # Setup Stuff:
+
+    def _setup_table_index(self):
+        for field_name in self.model_cls().searchable_fields():
+            field_attr = getattr(self.model_cls(), field_name)
+            if isinstance(field_attr, IdField):
+                self._searchable_index[field_name] = set()
+
+    # Actual methods
 
     def add_row(self, row: model) -> None:
         if row.id == None:
@@ -145,8 +156,9 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
 
         last_idx = super().add_row(row)
         self._table_index[str(row.id)] = row
+        self._update_table_index(row)
         self._update_last_id(row)
-    
+
     def remove_row(self, row: model):
         row_id = str(row.id)
         if row_id in self._table_index:
@@ -155,13 +167,24 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
         if row in self._rows:
             super().remove_row(row)
 
-    def remove_row_id(self, row_id: str | int):
+    def remove_row_id(self, row_id: Optional[str | int]):
+        if row_id is None: return
+
         row = self._table_index.get(str(row_id), None)
         if row: self.remove_row(row)
 
     def get_by_id(self, row_id: str | int) -> Optional[model]:
         return self._table_index.get(str(row_id))
 
+
+    # Utility stuff:
+
+    def _update_table_index(self, row: model):
+        for field_name in self.model_cls().searchable_fields():
+            if not field_name in self._searchable_index:
+                self._searchable_index[field_name] = set()
+            
+            # self._searchable_index[field_name][str(row.id)] = row
 
     def _update_last_id(self, row: model):
         if type(row.id) is int:

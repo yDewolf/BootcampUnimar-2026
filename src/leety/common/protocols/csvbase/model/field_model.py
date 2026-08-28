@@ -2,7 +2,16 @@
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints, overload
 from leety.common.protocols.csvbase.model.field_exceptions import FieldMissingValue
 from leety.common.protocols.csvbase.model.type_protocols import TableProtocol
-from leety.common.utils.type_utils import is_type_optional
+from leety.common.utils.type_utils import get_attributes_of_type, is_type_optional
+# TODO: talvez implementa relacionamentos para evitar que dados relacionados em tabelas diferentes fiquem dessincronizados
+# a minha ideia é tentar linkar as tabelas usando um LinkField, que recebe o field que ele está linkado
+# dessa forma você teria que fazer algo tipo: 
+# class Model(FieldModel):
+#   link_field = LinkField(target_field=TargetModel.field)
+# 
+# assim o python automaticamente registraria a dependencia de um modelo sobre o outro
+# já que ele depende de importar a classe alvo do modelo alvo, aí eu só teria que registrar a ordem de compilação das classes
+# para reutilizar depois como uma lista de dependência e carregar os dados salvos na ordem certa
 
 class Field[valueType: Any]:
     _field_id: str
@@ -141,14 +150,7 @@ class FieldModel:
 
     @classmethod
     def _bake_header_keys(cls) -> tuple[str, ...]:
-        hints = get_type_hints(cls)
-        header_keys: list[str] = []
-        for key, type_hint in hints.items():
-            origin = get_origin(type_hint) or type_hint
-            if issubclass(origin, Field):
-                header_keys.append(key)
-
-        cls._header_keys = tuple(header_keys)
+        cls._header_keys = get_attributes_of_type(cls, Field)
         return cls._header_keys
 
     @classmethod
