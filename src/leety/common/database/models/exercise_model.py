@@ -21,5 +21,8 @@ class ExerciseModel(IndexableFieldModel[int]):
     memory_limit: Field[int]
 
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
+
+    # FIXME: teoricamente essas variáveis de path não são necessárias
     sample_gen_path: Field[Optional[str]] = Field(default=None)
+    solution_template_path: Field[Optional[str]] = Field(default=None)
     # solver_code: Field[str] = Field(default=None)        

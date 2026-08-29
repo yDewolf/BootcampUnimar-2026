@@ -1,9 +1,11 @@
 
 from pathlib import Path
 
+from leety.common.utils.str_utils import split_in_lines
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import ExerciseModel
-from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, SandboxController
+from leety.server.exercise.template_utils import TemplateUtils
+from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, SOLUTION_FILENAME, SandboxController
 
 
 class ExerciseController:
@@ -35,5 +37,20 @@ class ExerciseController:
         code_file = exercise_folder / GENERATOR_FILENAME
         code_file.write_text(sample_gen_code, encoding="utf-8")
 
+        annotations = TemplateUtils.extract_solution_annotations(sample_gen_code)
+        # TODO: trocar o exercise_data.diff_id pelo nome da dificuldade
+        template_header: str = TemplateUtils.create_exercise_header(
+            exercise_data.title, str(exercise_data.id), 
+            exercise_data.context, exercise_data.diff_id
+        )
+        solution_template = TemplateUtils.create_solution_template(
+            annotations, 
+            template_header=template_header, 
+            function_comments="#".join(split_in_lines("Implemente essa função para solucionar o problema descrito."))
+        )
+
+        sol_template_file = exercise_folder / SOLUTION_FILENAME
+        sol_template_file.write_text(solution_template, encoding="utf-8")
         exercise_data._sample_gen_code = None
         exercise_data.sample_gen_path = str(code_file)
+        exercise_data.solution_template_path = str(sol_template_file)
