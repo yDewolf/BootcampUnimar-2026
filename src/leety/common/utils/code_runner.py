@@ -10,8 +10,11 @@ class CodeRunner:
 
 
     def run_python(self, timeout: float, args: list[Any]) -> str:
+        stringified_args = [
+            str(arg) for arg in args
+        ]
         result = subprocess.run(
-            ["python3", self.file_path, *args],
+            ["python3", self.file_path, *stringified_args],
             capture_output=True,
             text=True,
             timeout=timeout

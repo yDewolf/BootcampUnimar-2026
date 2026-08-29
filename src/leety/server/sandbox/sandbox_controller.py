@@ -21,6 +21,7 @@ from leety.common.utils.file_utils import FileUtils
 #           - solution.py (código enviado pelo usuário)
 
 GENERATOR_FILENAME = "generator.py"
+GENERATOR_LIB_FILENAME = "base_generator.py"
 SOLUTION_FILENAME = "solution.py"
 RUNNER_FILENAME = "runner.py"
 
@@ -37,17 +38,19 @@ class SandboxController:
     def solutions_path(self) -> Path: return self.tmp_path / "solutions"
 
     @property
+    def sample_lib_path(self) -> Path: return self.sandbox_path / "base_generator.py"
+    @property
     def sample_runner_path(self) -> Path: return self.sandbox_path / "sample_runner.py"
 
     @property
     def solution_runner_path(self) -> Path: return self.sandbox_path / "solution_runner.py"
 
 
-    def __init__(self, sandbox_path: str | Path, sample_runner_path: str | Path, solution_runner_path: str | Path) -> None:
+    def __init__(self, sandbox_path: str | Path, sample_runner_path: str | Path, sample_lib_path: str | Path, solution_runner_path: str | Path) -> None:
         self._sandbox_path = Path(sandbox_path)
-        self._setup_directory(sample_runner_path, solution_runner_path)
+        self._setup_directory(sample_runner_path, sample_lib_path, solution_runner_path)
 
-    def _setup_directory(self, sample_runner_path: str | Path, solution_runner_path: str | Path):
+    def _setup_directory(self, sample_runner_path: str | Path, sample_lib_path: str | Path, solution_runner_path: str | Path):
         self.sandbox_path.mkdir(parents=True, exist_ok=True)
         self.tmp_path.mkdir(exist_ok=True)
         self.generators_path.mkdir(exist_ok=True)
@@ -55,6 +58,7 @@ class SandboxController:
 
         shutil.copyfile(sample_runner_path, self.sample_runner_path)
         shutil.copyfile(solution_runner_path, self.solution_runner_path)
+        shutil.copyfile(sample_lib_path, self.sample_lib_path)
 
 
     def prepare_solution_folder(self, solution_code: str, solution_id: str) -> Path:
@@ -71,6 +75,7 @@ class SandboxController:
         )
 
         shutil.copyfile(self.sample_runner_path, job_dir / RUNNER_FILENAME)
+        shutil.copyfile(self.sample_lib_path, job_dir / GENERATOR_LIB_FILENAME)
         return job_dir
 
     def cleanup_tmp(self):

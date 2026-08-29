@@ -1,15 +1,15 @@
 from typing import Any, Protocol, TypedDict
 
 class TestCase(TypedDict):
-    inputs: list[Any]
+    inputs: dict[str, Any]
     expected: Any
 
 class ISampleGenerator(Protocol):
-    def generate_sample(self) -> list[Any]: 
+    def generate_inputs(self) -> dict[str, Any]: 
         """Gera os argumentos que serão passados para o Solver"""
         ...
 
-    def generate_result(self, *args: Any) -> Any: 
+    def solver(self, *args: Any) -> Any: 
         """Gera um resultado a partir dos argumentos"""
         ...
 
@@ -17,14 +17,14 @@ class ISampleGenerator(Protocol):
         ...
 
 class BaseSampleGenerator(ISampleGenerator):
-    def generate_inputs(self) -> list[Any]:
+    def generate_inputs(self) -> dict[str, Any]:
         raise NotImplementedError
 
-    def solver(self, *args: Any) -> Any:
+    def solver(self, **kwargs: Any) -> Any:
         raise NotImplementedError
     
     def generate_test_case(self) -> TestCase:
-        sample = self.generate_sample()
-        result = self.generate_result(sample)
+        sample = self.generate_inputs()
+        result = self.solver(**sample)
 
-        return TestCase(inputs=sample, expected=result)
+        return {"inputs": sample, "expected": result}

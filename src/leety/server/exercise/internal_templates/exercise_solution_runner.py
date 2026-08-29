@@ -1,6 +1,6 @@
 import sys
 import json
-from user_code import Solution
+from solution import Solution
 
 def main():
     test_suite_json = sys.argv[1]
