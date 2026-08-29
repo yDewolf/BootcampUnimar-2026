@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Self
+from typing import Optional, Self
 
 from leety.common.internals.database.abstract.abs_csvbase import _Database
 from leety.common.internals.database.database_file import DBFileManager
@@ -8,11 +8,14 @@ from leety.common.internals.database.database_file import DBFileManager
 class Database(_Database):
     _file_manager: DBFileManager
     _default_path: Path
+    
+    @property
+    def file_manager(self) -> DBFileManager: return self._file_manager
 
-    def __init__(self, db_path: str | Path) -> None:
+    def __init__(self, db_path: str | Path, file_manager: Optional[DBFileManager] = None) -> None:
         super().__init__()
         self._default_path = Path(db_path)
-        self._file_manager = DBFileManager(self, self._default_path)
+        self._file_manager = file_manager or DBFileManager(self, self._default_path)
 
     @classmethod
     def from_folder(cls, path: str | Path) -> Self:

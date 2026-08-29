@@ -59,8 +59,8 @@ class Table[model: FieldModel]:
         return subclass
 
     @classmethod
-    def get_headers(cls) -> tuple[str, ...]:
-        return cls._model_cls.header_keys()
+    def get_headers(cls, raw: bool = False) -> tuple[str, ...]:
+        return cls._model_cls.header_keys(raw)
 
     def add_row(self, row: model, check_duplicate: bool = True) -> int:
         if not isinstance(row, self._model_cls):

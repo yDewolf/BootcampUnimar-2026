@@ -5,7 +5,7 @@ from types import NoneType
 from typing import Any, get_args
 
 from leety.common.internals.database.abstract.abs_csvbase import _Database
-from leety.common.internals.protocols.csvbase.model.field_model import Field
+from leety.common.internals.database.protocols.model.field_model import Field
 
 
 class DBFileManager:
@@ -54,7 +54,7 @@ class DBFileManager:
                 writer.writeheader()
 
                 for row in table.rows:
-                    writer.writerow(row._data)
+                    writer.writerow(row.get_data(raw=False))
 
 
     def load(self, db_dir: str | Path) -> None:

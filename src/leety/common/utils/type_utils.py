@@ -7,10 +7,14 @@ def is_type_optional(type_hint: Type) -> bool:
     
     return False
 
-def get_attributes_of_type(cls: type, target_types: tuple[type] | type, exclude: Optional[tuple[type] | type] = None) -> tuple[str, ...]:
+def get_attributes_of_type(cls: type, target_types: tuple[type] | type, exclude: Optional[tuple[type] | type] = None, ignored_prefixes: Optional[tuple[str]] = None) -> tuple[str, ...]:
     hints = get_type_hints(cls)
     attributes: list[str] = []
     for key, type_hint in hints.items():
+        if ignored_prefixes:
+            if key.startswith(ignored_prefixes):
+                continue
+
         origin = get_origin(type_hint) or type_hint
         if issubclass(origin, target_types):
             if exclude and issubclass(origin, exclude):

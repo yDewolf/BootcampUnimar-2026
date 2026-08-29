@@ -117,6 +117,8 @@ class FieldModel:
     _table_ref: Optional[TableProtocol]
 
     _header_keys: tuple[str, ...]
+    _raw_header_keys: tuple[str, ...]
+
     _unique_fields: tuple[str, ...]
     _data: dict[str, Any] = {}
 
@@ -139,25 +141,33 @@ class FieldModel:
 
     
     def _set_from_dict(self, data_dict: dict[str, Any]):
-        for key in self.header_keys():
+        for key in self.header_keys(raw=True):
             val = data_dict.get(key)
             setattr(self, key, val)
         
+    def get_data(self, raw: bool = False) -> dict[str, Any]:
+        if raw: return self._data
+
+        return {key: value for key, value in self._data.items() if not key.startswith("_")}
 
     @classmethod
-    def header_keys(cls) -> tuple[str, ...]:
+    def header_keys(cls, raw: bool = False) -> tuple[str, ...]:
+        if raw: return cls._raw_header_keys
         return cls._header_keys
 
     @classmethod
     def _bake_header_keys(cls) -> tuple[str, ...]:
-        cls._header_keys = get_attributes_of_type(cls, Field)
+        cls._raw_header_keys = get_attributes_of_type(cls, Field)
+        cls._header_keys = tuple([
+            key for key in cls._raw_header_keys if not key.startswith("_")
+        ])
         return cls._header_keys
 
     @classmethod
     def _setup_field_descriptors(cls):
         hints = cls._get_type_hints()
         unique_fields: list[str] = []
-        for field_name in cls.header_keys():
+        for field_name in cls.header_keys(raw=True):
             field_instance: Optional[Field[Any]] = getattr(cls, field_name, None)
 
             hint = hints[field_name]

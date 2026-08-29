@@ -1,7 +1,8 @@
 {
- "database_class": "TestDatabase",
+ "database_class": "LeetyDatabase",
  "tables": [
   "users",
-  "admins"
+  "ex_difficulties",
+  "exercises"
  ]
 }
