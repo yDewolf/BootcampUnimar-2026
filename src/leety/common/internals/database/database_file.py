@@ -2,11 +2,10 @@ import csv
 import json
 from pathlib import Path
 from types import NoneType
-from typing import Any, get_args, get_origin
+from typing import Any, get_args
 
-from leety.common.database.abstract.abs_csvbase import _Database
-from leety.common.protocols.csvbase.model.field_model import Field
-
+from leety.common.internals.database.abstract.abs_csvbase import _Database
+from leety.common.internals.protocols.csvbase.model.field_model import Field
 
 
 class DBFileManager:

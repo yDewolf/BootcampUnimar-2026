@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Self
 
-from leety.common.database.abstract.abs_csvbase import _Database
-from leety.common.database.database_file import DBFileManager
+from leety.common.internals.database.abstract.abs_csvbase import _Database
+from leety.common.internals.database.database_file import DBFileManager
 
 # Aqui vai ter as coisas que são úteis mas não 100% necessárias para qualquer database
 class Database(_Database):

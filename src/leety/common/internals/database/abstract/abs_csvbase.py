@@ -1,7 +1,7 @@
 
 from typing import Any, get_type_hints
 
-from leety.common.protocols.csvbase.csv_table import IndexableTable, Table
+from leety.common.internals.database.protocols.csv_table import IndexableTable, Table
 from leety.common.utils.type_utils import get_attributes_of_type
 
 # A classe Database é bem similar ao FieldModel, basicamente ela só descreve

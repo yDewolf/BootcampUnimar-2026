@@ -1,8 +1,8 @@
 
-from leety.common.database.csvbase import Database
-from leety.common.protocols.csvbase.csv_table import IndexableTable
-from leety.common.protocols.csvbase.model.default_models import IndexableFieldModel, SearchableField
-from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
+from leety.common.internals.database.csvbase import Database
+from leety.common.internals.database.protocols.csv_table import IndexableTable
+from leety.common.internals.database.protocols.model.default_models import IndexableFieldModel, SearchableField
+from leety.common.internals.database.protocols.model.field_model import Field, FieldModel
 
 
 class UserModel(IndexableFieldModel[int]):

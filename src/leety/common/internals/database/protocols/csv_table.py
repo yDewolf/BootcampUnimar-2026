@@ -2,8 +2,8 @@ from types import get_original_bases
 from typing import Any, Optional, TypeVar, get_args, get_origin
 import uuid
 
-from leety.common.protocols.csvbase.model.default_models import IdField, IndexableFieldModel, SearchableField
-from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
+from leety.common.internals.database.protocols.model.default_models import IdField, IndexableFieldModel, SearchableField
+from leety.common.internals.database.protocols.model.field_model import Field, FieldModel
 
 class Table[model: FieldModel]:
     _rows: list[model]
