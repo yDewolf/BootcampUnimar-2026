@@ -1,4 +1,5 @@
-from typing import Any, Optional, Type, get_origin, get_type_hints, overload, override
+from types import get_original_bases
+from typing import Any, Generic, Optional, Type, get_args, get_origin, get_type_hints, overload, override
 
 from leety.common.protocols.csvbase.model.field_model import Field, FieldModel
 from leety.common.utils.type_utils import get_attributes_of_type
@@ -30,6 +31,22 @@ class IndexableFieldModel[idType: str | int](FieldModel):
             raise Exception(f"ERROR in {cls.__name__}: {IndexableFieldModel.__name__}s should contain only one {IdField.__name__}")
 
         cls._setup_searchables()
+
+    @classmethod
+    def _get_type_hints(cls):
+        hints = super()._get_type_hints()
+        bases = get_original_bases(cls)
+        id_type_hint = (str | int)
+        for base in bases:
+            # if issubclass(base, IndexableFieldModel):
+            args = get_args(base)
+            if args:
+                if not isinstance(args[0], type): continue
+                id_type_hint = args[0]
+
+        hints["id"] = IdField[Optional[id_type_hint]]
+        return hints
+        
 
     @classmethod
     def _setup_searchables(cls):

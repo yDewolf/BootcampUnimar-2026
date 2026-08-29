@@ -1,0 +1,7 @@
+{
+ "database_class": "TestDatabase",
+ "tables": [
+  "users",
+  "admins"
+ ]
+}

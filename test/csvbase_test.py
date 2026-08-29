@@ -19,7 +19,7 @@ class TestDatabase(Database):
     admins: IndexableTable[AdminModel]
 
 
-db = TestDatabase()
+db = TestDatabase("test_database")
 
 assert db.get_table("users") == db.users
 assert db.get_table("admins") == db.admins
@@ -31,6 +31,12 @@ assert db.users._searchable_index == {"description": {test_user.description: [te
 
 db.users.match_field({UserModel.description: test_user.description})
 db.admins.add_row(AdminModel(id=None, user_id=test_user.id))
+
+db.save()
+
+db_0 = TestDatabase.from_folder(db._default_path)
+for idx, row in enumerate(db_0.users._rows):
+    assert row._data == db.users._rows[idx]._data
 
 db.users.remove_row_id(test_user.id)
 assert db.users._searchable_index == {"description": {}}

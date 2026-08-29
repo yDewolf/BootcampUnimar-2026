@@ -1,7 +1,7 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints, overload
 from leety.common.protocols.csvbase.model.field_exceptions import FieldMissingValue
-from leety.common.protocols.csvbase.model.type_protocols import TableProtocol
+from leety.common.protocols.csvbase.type_protocols import TableProtocol
 from leety.common.utils.type_utils import get_attributes_of_type, is_type_optional
 # TODO: talvez implementa relacionamentos para evitar que dados relacionados em tabelas diferentes fiquem dessincronizados
 # a minha ideia é tentar linkar as tabelas usando um LinkField, que recebe o field que ele está linkado
@@ -155,7 +155,7 @@ class FieldModel:
 
     @classmethod
     def _setup_field_descriptors(cls):
-        hints = get_type_hints(cls)
+        hints = cls._get_type_hints()
         unique_fields: list[str] = []
         for field_name in cls.header_keys():
             field_instance: Optional[Field[Any]] = getattr(cls, field_name, None)
@@ -177,6 +177,10 @@ class FieldModel:
                     unique_fields.append(field_name)
 
         cls._unique_fields = tuple(unique_fields)
+
+    @classmethod
+    def _get_type_hints(cls):
+        return get_type_hints(cls)
 
     def to_csv_str(self, include_header: bool = False) -> str:
         field_values: list[Field] = [
