@@ -1,13 +1,11 @@
 from pathlib import Path
-import random
 
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseModel
 from leety.common.database.models.user_model import UserModel
-from leety.common.utils.code_runner import CodeRunner
 from leety.server.exercise.exercise_controller import ExerciseController
 from leety.server.exercise.solution_controller import SolutionController
-from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, RUNNER_FILENAME, SandboxController
+from leety.server.sandbox.sandbox_controller import SandboxController
 
 database = LeetyDatabase("test_database")
 admin_user = UserModel(id=None, username="yDewolf", password="123456", is_admin=True)
@@ -52,9 +50,9 @@ exercise_controller.generate_samples_for_exercise(
 )
 
 try:
-    is_valid, output = solution_controller.upload_attempt(
+    is_valid, output = solution_controller.submit_attempt(
         admin_user.id, exercise_id=exercise.id,
-        code_attempt=(
+        attempt_code=(
 """
 class Solution:
     def solve(self, n0: int, n1: int) -> Any:
@@ -64,9 +62,9 @@ class Solution:
     )
     print(is_valid, output)
 
-    is_valid, output = solution_controller.upload_attempt(
+    is_valid, output = solution_controller.submit_attempt(
         admin_user.id, exercise_id=exercise.id,
-        code_attempt=(
+        attempt_code=(
 """
 class Solution:
     def solve(self, n0: int, n1: int) -> Any:
@@ -75,9 +73,9 @@ class Solution:
         )
     )
     print(is_valid, output)
-    is_valid, output = solution_controller.upload_attempt(
+    is_valid, output = solution_controller.submit_attempt(
         admin_user.id, exercise_id=exercise.id,
-        code_attempt=(
+        attempt_code=(
 """
 class MySolution:
     def solve(self, n0: int, n1: int) -> Any:

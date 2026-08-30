@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import time
+from typing import Optional
 
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import ExerciseAttempt, ExerciseModel
@@ -24,21 +25,13 @@ class SolutionController:
         self.exercise_controller = exercise_controller
 
     # Attempt CRUD:
-    def upload_attempt(self, user_id: int, exercise_id: int, code_attempt: str) -> tuple[bool, dict]:
-        user_data = self.database.users.get_by_id(user_id)
-        if not user_data:
-            raise Exception(f"Can't upload attempt as a non existent user. id: {user_id}")
-        
-        exercise_data = self.exercise_controller.get_exercise(exercise_id)
-        if not exercise_data:
-            raise Exception(f"Exercise of id {exercise_id} doesn't exist")
-
-
+    def submit_attempt(self, user_id: int, exercise_id: int, attempt_code: str) -> tuple[bool, dict]:
+        user_data, exercise_data = self._ensure_user_and_exercise(user_id, exercise_id)
         samples = self.exercise_controller.load_samples(exercise_id)
         if not samples:
             raise Exception(f"Missing samples for exercise #{exercise_id}")
         
-        is_valid, output = self._validate_attempt(exercise_data, code_attempt, samples)
+        is_valid, output = self._validate_attempt(exercise_data, attempt_code, samples)
         correct_results: int = 0
         if is_valid:
             correct_results = len(samples)
@@ -52,8 +45,44 @@ class SolutionController:
         )
 
         self.database.ex_attempts.add_row(attempt_data)
+        if is_valid:
+            self._upload_attempt(attempt_data, attempt_code)
+
         return (is_valid, output)
 
+    def _upload_attempt(self, attempt: ExerciseAttempt, code: str):
+        assert attempt.id, "Attempt must have ID setup"
+        attempts_folder = self.exercise_attempts_folder(attempt.exercise_id)
+        if not attempts_folder.exists():
+            attempts_folder.mkdir()
+
+        attempt_file = self.attempt_filename(attempt.author_id, attempt.exercise_id, attempt.id)
+        attempt_file.write_text(code, encoding="utf-8")
+
+    def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]:
+        user, exercise = self._ensure_user_and_exercise(user_id, exercise_id)
+        return self.database.ex_attempts.match_searchable_field({
+            ExerciseAttempt.author_id: user.id,
+            ExerciseAttempt.exercise_id: exercise.id
+        }) or []
+
+    def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]:
+        return self.database.ex_attempts.match_searchable_field({
+            ExerciseAttempt.exercise_id: exercise_id
+        }) or []
+
+    # Utils:
+
+    def _ensure_user_and_exercise(self, user_id: int, exercise_id: int) -> tuple[UserModel, ExerciseModel]:
+        user_data = self.database.users.get_by_id(user_id)
+        if not user_data:
+            raise Exception(f"Can't upload attempt as a non existent user. id: {user_id}")
+        
+        exercise_data = self.exercise_controller.get_exercise(exercise_id)
+        if not exercise_data:
+            raise Exception(f"Exercise of id {exercise_id} doesn't exist")
+
+        return user_data, exercise_data
 
     def _run_solution(self, code: str, samples: list[TestCase], timeout: float = 5, memory_limit: int = 64, auto_cleanup: bool = True):
         job_dir = self.sandbox_controller.prepare_solution_folder(code)
@@ -86,4 +115,15 @@ class SolutionController:
             case _:
                 return (False, parsed_output)
 
-        
+    # Paths:
+
+    # TODO: talvez mudar isso daqui e seguir a seguinte estrutura:
+    # uploads/
+    #   - attempts/
+    #       - ex_<id>_<code_hash>/
+    #           - attempt_<user_id>_<attempt_id>.py
+    def exercise_attempts_folder(self, exercise_id: int) -> Path:
+        return self.exercise_controller._get_exercise_folder(exercise_id) / "attempts"
+
+    def attempt_filename(self, user_id: int, exercise_id: int, attempt_id: int) -> Path:
+        return self.exercise_attempts_folder(exercise_id) / f"attempt_usr{user_id}_att{attempt_id}.py"

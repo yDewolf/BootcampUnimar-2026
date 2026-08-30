@@ -20,6 +20,10 @@ class BaseExerciseModel(IndexableFieldModel[int]):
     time_limit: Field[float]
     memory_limit: Field[int]
 
+    # usado para comparar com o tempo das soluções
+    benchmark_time: Field[Optional[float]] = Field(default=0)
+    benchmark_samples: Field[Optional[int]] = Field(default=None)
+
 class ExerciseModel(BaseExerciseModel):
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
 
@@ -31,8 +35,8 @@ class ExerciseModel(BaseExerciseModel):
 
 # Quando a solução é inválida
 class ExerciseAttempt(IndexableFieldModel[int]):
-    author_id: Field[int]
-    exercise_id: Field[int]
+    author_id: SearchableField[int]
+    exercise_id: SearchableField[int]
 
     valid: SearchableField[bool]
 

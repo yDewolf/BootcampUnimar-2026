@@ -5,7 +5,6 @@ import time
 from typing import Any, Optional
 
 from leety.common.utils.code_runner import CodeRunner
-from leety.common.utils.str_utils import split_in_lines
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseDifficulty, ExerciseModel
 from leety.common.utils.type_utils import is_valid_typeddict
@@ -13,7 +12,7 @@ from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.template_utils import TemplateUtils
 from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, RUNNER_FILENAME, SAMPLE_PATH, SOLUTION_FILENAME, SandboxController
 
-
+DEFAULT_BENCHMARK_SAMPLES = 50
 class ExerciseController:
     database: LeetyDatabase
     sandbox_controller: SandboxController
@@ -100,6 +99,10 @@ class ExerciseController:
         if not self._test_generator(sample_gen, exercise_id):
             return False
 
+        output, benchmark_time = self._run_generator(sample_gen, DEFAULT_BENCHMARK_SAMPLES, timeout=90)
+        exercise_data.benchmark_time = benchmark_time
+        exercise_data.benchmark_samples = DEFAULT_BENCHMARK_SAMPLES
+        
         sample_file = self._upload_generator(sample_gen, exercise_id)
         solution_file = self._upload_solution_template(sample_gen, exercise_data)
         # TODO: talvez remover isso aqui já que esses caminhos são determinísticos
