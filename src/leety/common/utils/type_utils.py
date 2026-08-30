@@ -1,4 +1,4 @@
-from typing import Optional, Type, Union, get_args, get_origin, get_type_hints
+from typing import Any, Optional, Type, Union, get_args, get_origin, get_type_hints
 
 
 def is_type_optional(type_hint: Type) -> bool:
@@ -23,3 +23,19 @@ def get_attributes_of_type(cls: type, target_types: tuple[type] | type, exclude:
             attributes.append(key)
 
     return tuple(attributes)
+
+def is_valid_typeddict(data: dict, typed_dict_cls: type) -> bool:
+    if not issubclass(type(data), dict):
+        return False
+    
+    expected_hints = get_type_hints(typed_dict_cls)
+    if set(data.keys()) != set(expected_hints.keys()):
+        return False
+    
+    for key, expected_type in expected_hints.items():
+        if expected_type is Any: continue
+        
+        if not isinstance(data[key], expected_type):
+            return False
+    
+    return True

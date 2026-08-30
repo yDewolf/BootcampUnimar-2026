@@ -8,6 +8,7 @@ from leety.common.utils.code_runner import CodeRunner
 from leety.common.utils.str_utils import split_in_lines
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseDifficulty, ExerciseModel
+from leety.common.utils.type_utils import is_valid_typeddict
 from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.template_utils import TemplateUtils
 from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, RUNNER_FILENAME, SAMPLE_PATH, SOLUTION_FILENAME, SandboxController
@@ -51,7 +52,9 @@ class ExerciseController:
 
 
     # Exercise CRUD:
-    def create_exercise(self, exercise_data: ExerciseModel):
+    
+    # Registra o exercício no banco de dados e retorna se o código de geração é válido
+    def create_exercise(self, exercise_data: ExerciseModel) -> bool:
         sample_gen_code = exercise_data._sample_gen_code
         if not sample_gen_code:
             raise Exception(f"Missing Sample Generator Code for exercise {exercise_data}")
@@ -59,14 +62,10 @@ class ExerciseController:
         self.database.exercises.add_row(exercise_data)
         assert exercise_data.id, "Exercise ID wasn't auto filled"
         self._setup_exercise_folder(exercise_data.id)
-
-        code_file = self._upload_generator(sample_gen_code, exercise_data.id)
-        sol_template_file = self._upload_solution_template(sample_gen_code, exercise_data)
-        
         exercise_data._sample_gen_code = None
-        # TODO: talvez remover isso aqui já que esses caminhos são determinísticos
-        exercise_data.sample_gen_path = str(code_file)
-        exercise_data.solution_template_path = str(sol_template_file)
+
+        valid_generator = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
+        return valid_generator
 
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.database.exercises.get_by_id(exercise_id)
@@ -86,15 +85,17 @@ class ExerciseController:
         exercise._set_from_dict(filtered_data)
         return True
 
-    def reupload_sample_code(self, exercise_id: int, sample_gen: str) -> bool:
+    def upload_sample_gen_code(self, exercise_id: int, sample_gen: str) -> bool:
         exercise_data = self.get_exercise(exercise_id)
         if not exercise_data:
             return False
 
-        sample_file = self.exercise_sample_gen_path(exercise_id)
-        sample_file.write_text(sample_gen)
+        if not self._test_generator(sample_gen, exercise_id):
+            return False
 
+        sample_file = self._upload_generator(sample_gen, exercise_id)
         solution_file = self._upload_solution_template(sample_gen, exercise_data)
+        # TODO: talvez remover isso aqui já que esses caminhos são determinísticos
         exercise_data.sample_gen_path = str(sample_file)
         exercise_data.solution_template_path = str(solution_file)
         return True
@@ -103,20 +104,28 @@ class ExerciseController:
         self.database.exercises.remove_row_id(exercise_id)
 
     # Exercise Sample "CRUD":
-    def generate_samples_for_exercise(self, exercise_id: int, amount: int = 50, timeout: float = 10, auto_cleanup: bool = True) -> str:
+    def generate_samples_for_exercise(self, exercise_id: int, amount: int = 50, timeout: float = 10, auto_cleanup: bool = True) -> Optional[list[TestCase]]:
         exercise = self.get_exercise(exercise_id)
         if not exercise:
             raise Exception(f"Exercise of id {exercise_id} doesn't isn't registered in database")
 
         sample_path = self.exercise_sample_gen_path(exercise_id)
+        if not sample_path.exists():
+            raise Exception(f"Exercise #{exercise_id} doesn't have a valid sample generator")
+        
         code = sample_path.read_text(encoding="utf-8")
         output, time_elapsed = self._run_generator(code, exercise_id, amount, timeout, auto_cleanup=auto_cleanup)
-        print(f"DEBUG: Generated {amount} samples for exercise #{exercise_id} in {time_elapsed:.2f}ms")
 
         sample_path = self.exercise_sample_path(exercise_id)
         sample_path.write_text(output, encoding="utf-8")
 
-        parsed = json.loads(output)
+        try:
+            parsed: Optional[list[TestCase]] = json.loads(output)
+            print(f"DEBUG: Generated {len(parsed) if parsed else 0} samples for exercise #{exercise_id} in {(time_elapsed * 1000):.2f}ms")
+        except ValueError:
+            parsed = None
+            print(f"WARNING: Failed to generate valid samples for exercise #{exercise_id}")
+        
         return parsed
 
     def load_samples(self, exercise_id: int) -> Optional[list[TestCase]]:
@@ -129,8 +138,12 @@ class ExerciseController:
             raise Exception(f"Couldn't find samples for exercise #{exercise_id} in {sample_path}")
 
         json_str = sample_path.read_text(encoding="utf-8")
-        samples: list[TestCase] = json.loads(json_str)
-        return samples
+        try:
+            samples: list[TestCase] = json.loads(json_str)
+            return samples
+        except Exception as e:
+            print(f"ERROR: couldn't parse samples for exercise #{exercise_id}", e)
+            return None
 
 
     def _run_generator(self, code: str, exercise_id: int, sample_amount: int = 10, timeout: float = 1, auto_cleanup: bool = True) -> tuple[str, float]:
@@ -146,6 +159,25 @@ class ExerciseController:
             self.sandbox_controller.cleanup_job(job_dir)
         return (output, elapsed)
 
+    def _test_generator(self, code: str, exercise_id: Optional[int] = None) -> bool:
+        exercise_id = exercise_id or -1
+        try:
+            output, elapsed = self._run_generator(code, exercise_id, sample_amount=5, timeout=10)
+            test_cases  = json.loads(output)
+            if not isinstance(test_cases, list):
+                raise Exception("test_cases should be a list of TestCase (TypedDict)")
+            
+            for idx, case in enumerate(test_cases):
+                is_valid = is_valid_typeddict(case, TestCase)
+                if not is_valid:
+                    raise Exception(f"Case {idx} is not a valid TestCase. Data: {case}")
+            
+            return True
+        
+        except Exception as e:
+            print(f"ERROR: generator code for exercise #{exercise_id} is not valid. {e}")
+            return False
+
     # Utils:
 
     def _setup_exercise_folder(self, exercise_id: int) -> Path:
@@ -153,7 +185,7 @@ class ExerciseController:
         exercise_folder.mkdir(exist_ok=True)
         return exercise_folder
 
-    def _upload_generator(self, sample_gen_code: str, exercise_id: int) -> Path:
+    def _upload_generator(self, sample_gen_code: str, exercise_id: int) -> Optional[Path]:
         code_file = self.exercise_sample_gen_path(exercise_id)
         code_file.write_text(sample_gen_code, encoding="utf-8")
         return code_file

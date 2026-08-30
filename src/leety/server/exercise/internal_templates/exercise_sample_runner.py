@@ -19,9 +19,13 @@ def run():
     generator = generator_class()
 
     test_suite = []
-    for _ in range(total_cases):
-        test_case = generator.generate_test_case()
-        test_suite.append(test_case)
+    try:
+        for _ in range(total_cases):
+            test_case = generator.generate_test_case()
+            test_suite.append(test_case)
+    except Exception as e:
+        print("Failed to generate samples ", e)
+        return
 
     print(json.dumps(test_suite))
 

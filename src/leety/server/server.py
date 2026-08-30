@@ -15,7 +15,7 @@ sandbox_controller = SandboxController(
     solution_runner_path=Path(__file__).resolve().parent / "exercise" / "internal_templates" / "exercise_solution_runner.py",
 )
 exercise_controller = ExerciseController(database, sandbox_controller)
-exercise_controller.create_exercise(ExerciseModel(
+valid_generator = exercise_controller.create_exercise(ExerciseModel(
     id=None, diff_id="none", title="test", context="testing", time_limit=1.0, memory_limit=16,
     _sample_gen_code="""
 from base_generator import BaseSampleGenerator, Any
@@ -34,7 +34,6 @@ class SampleGenerator(BaseSampleGenerator):
 exercise = database.exercises.get_by_id(1)
 assert exercise
 assert exercise.id
-assert exercise.sample_gen_path
 
 exercise_controller.modifiy_exercise(exercise.id, BaseExerciseModel(
         _auto_validate=False, # type: ignore
@@ -49,6 +48,7 @@ try:
     )
 
     loaded_samples = exercise_controller.load_samples(exercise.id)
+    print(loaded_samples)
     pass
 finally:
     database.save()

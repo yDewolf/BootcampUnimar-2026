@@ -1,7 +1,7 @@
 from typing import Any, Protocol, TypedDict
 
 class TestCase(TypedDict):
-    inputs: dict[str, Any]
+    inputs: dict
     expected: Any
 
 class ISampleGenerator(Protocol):
