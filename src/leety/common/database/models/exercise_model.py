@@ -13,6 +13,8 @@ class BaseExerciseModel(IndexableFieldModel[int]):
     # porque vai dar muito trabalho implementar o sistema de relação agora
     # talvez se sobrar tempo
     diff_id: SearchableField[str]
+    author_id: Field[Optional[int]] = Field(default=None)
+    contributors: Field[Optional[list[int]]] = Field(default=[])
     
     title: Field[str]
     context: Field[str] = Field(default=None)
@@ -20,16 +22,17 @@ class BaseExerciseModel(IndexableFieldModel[int]):
     time_limit: Field[float]
     memory_limit: Field[int]
 
-    # usado para comparar com o tempo das soluções
-    benchmark_time: Field[Optional[float]] = Field(default=0)
-    benchmark_samples: Field[Optional[int]] = Field(default=None)
 
 class ExerciseModel(BaseExerciseModel):
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
 
     # FIXME: teoricamente essas variáveis de path não são necessárias
-    sample_gen_path: Field[Optional[str]] = Field(default=None)
-    solution_template_path: Field[Optional[str]] = Field(default=None)
+    # sample_gen_path: Field[Optional[str]] = Field(default=None)
+    # solution_template_path: Field[Optional[str]] = Field(default=None)
+
+    # usado para comparar com o tempo das soluções
+    benchmark_time: Field[Optional[float]] = Field(default=0)
+    benchmark_samples: Field[Optional[int]] = Field(default=None)
     # solver_code: Field[str] = Field(default=None)        
 
 

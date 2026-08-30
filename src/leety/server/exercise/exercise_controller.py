@@ -11,18 +11,21 @@ from leety.common.utils.type_utils import is_valid_typeddict
 from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.template_utils import TemplateUtils
 from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, RUNNER_FILENAME, SAMPLE_PATH, SOLUTION_FILENAME, SandboxController
+from leety.server.user.user_controller import UserController
 
 DEFAULT_BENCHMARK_SAMPLES = 50
 class ExerciseController:
     database: LeetyDatabase
+    user_controller: UserController
     sandbox_controller: SandboxController
 
     @property
     def exercise_uploads(self) -> Path:
         return self.database.file_manager.uploads_path / "exercises"
 
-    def __init__(self, database: LeetyDatabase, sandbox_controller: SandboxController) -> None:
+    def __init__(self, database: LeetyDatabase, user_controller: UserController, sandbox_controller: SandboxController) -> None:
         self.database = database
+        self.user_controller = user_controller
         self.sandbox_controller = sandbox_controller
         self._setup_folders()
 
@@ -53,8 +56,10 @@ class ExerciseController:
     # Exercise CRUD:
     
     # Registra o exercício no banco de dados e retorna se o código de geração é válido
-    # TODO: passar o usuário que está criando o exercício
-    def create_exercise(self, exercise_data: ExerciseModel) -> bool:
+    def create_exercise(self, author_id: int, exercise_data: ExerciseModel) -> bool:
+        if not self.user_controller.is_admin(author_id):
+            raise Exception(f"Author must be an admin to create exercises. id: {author_id}")
+
         sample_gen_code = exercise_data._sample_gen_code
         if not sample_gen_code:
             raise Exception(f"Missing Sample Generator Code for exercise {exercise_data}")
@@ -70,15 +75,23 @@ class ExerciseController:
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.database.exercises.get_by_id(exercise_id)
 
-    def modifiy_exercise(self, exercise_id: int, new_data: BaseExerciseModel) -> bool:
+    def modifiy_exercise(self, author_id: int, exercise_id: int, new_data: BaseExerciseModel) -> bool:
+        if not self.user_controller.is_admin(author_id):
+            raise Exception(f"To modify exercises the user must be an admin. id: {author_id}")
+        
         exercise = self.database.exercises.get_by_id(exercise_id)
         if not exercise:
             return False
         
+        assert exercise.contributors
+        if not author_id in exercise.contributors:
+            exercise.contributors.append(author_id)
+        
         filtered_data = dict(new_data._data)
         del filtered_data["id"]
+        del filtered_data["author_id"]
         for key in new_data._data:
-            if key == "id": continue
+            if key in ("id", "author_id"): continue
             if new_data._data[key] is None:
                 del filtered_data[key]
 
@@ -106,8 +119,8 @@ class ExerciseController:
         sample_file = self._upload_generator(sample_gen, exercise_id)
         solution_file = self._upload_solution_template(sample_gen, exercise_data)
         # TODO: talvez remover isso aqui já que esses caminhos são determinísticos
-        exercise_data.sample_gen_path = str(sample_file)
-        exercise_data.solution_template_path = str(solution_file)
+        # exercise_data.sample_gen_path = str(sample_file)
+        # exercise_data.solution_template_path = str(solution_file)
         return True
 
     def delete_exercise(self, exercise_id: int):

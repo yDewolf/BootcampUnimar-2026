@@ -1,8 +1,6 @@
 import json
 from pathlib import Path
 import time
-from typing import Optional
-
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import ExerciseAttempt, ExerciseModel
 from leety.common.database.models.user_model import UserModel
@@ -11,7 +9,6 @@ from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.exercise_controller import ExerciseController
 from leety.server.exercise.template_utils import SolutionStatus
 from leety.server.sandbox.sandbox_controller import RUNNER_FILENAME, SOLUTION_FILENAME, SandboxController
-
 
 class SolutionController:
     database: LeetyDatabase
