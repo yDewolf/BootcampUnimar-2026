@@ -43,7 +43,7 @@ class SolutionController:
         if is_valid:
             correct_results = len(samples)
         elif output["status"] == SolutionStatus.RUNTIME_ERROR.value or output["status"] == SolutionStatus.WRONG_ANSWER.value:
-            correct_results = len(samples) - output["test_case"]
+            correct_results = output["test_case"] - 1
         
         attempt_data = ExerciseAttempt(
             id=None, author_id=user_id, exercise_id=exercise_id, valid=is_valid,
