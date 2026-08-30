@@ -8,18 +8,19 @@ class ExerciseDifficulty(IndexableFieldModel[str]):
     capitalized_name: Field[str]
     description: Field[str] = Field(default=None)
 
-class ExerciseModel(IndexableFieldModel[int]):
+class BaseExerciseModel(IndexableFieldModel[int]):
     # TODO: a implementação do relacionamento vai ser manual mesmo e gg, 
     # porque vai dar muito trabalho implementar o sistema de relação agora
     # talvez se sobrar tempo
     diff_id: SearchableField[str]
-
+    
     title: Field[str]
     context: Field[str] = Field(default=None)
 
     time_limit: Field[float]
     memory_limit: Field[int]
 
+class ExerciseModel(BaseExerciseModel):
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
 
     # FIXME: teoricamente essas variáveis de path não são necessárias

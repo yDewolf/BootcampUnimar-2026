@@ -21,6 +21,7 @@ from leety.common.utils.file_utils import FileUtils
 #           - solution.py (código enviado pelo usuário)
 
 GENERATOR_FILENAME = "generator.py"
+SAMPLE_PATH = "samples.json"
 GENERATOR_LIB_FILENAME = "base_generator.py"
 SOLUTION_FILENAME = "solution.py"
 RUNNER_FILENAME = "runner.py"
@@ -77,6 +78,10 @@ class SandboxController:
         shutil.copyfile(self.sample_runner_path, job_dir / RUNNER_FILENAME)
         shutil.copyfile(self.sample_lib_path, job_dir / GENERATOR_LIB_FILENAME)
         return job_dir
+
+    def cleanup_job(self, job_dir: Path):
+        if job_dir.resolve().is_relative_to(self.sandbox_path.resolve()):
+            FileUtils.cleanup_folder(job_dir)
 
     def cleanup_tmp(self):
         FileUtils.cleanup_folder(self.solutions_path)

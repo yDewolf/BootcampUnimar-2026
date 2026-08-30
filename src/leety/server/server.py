@@ -2,7 +2,7 @@ from pathlib import Path
 import random
 
 from leety.common.database.leety_db import LeetyDatabase
-from leety.common.database.models.exercise_model import ExerciseModel
+from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseModel
 from leety.common.utils.code_runner import CodeRunner
 from leety.server.exercise.exercise_controller import ExerciseController
 from leety.server.sandbox.sandbox_controller import GENERATOR_FILENAME, RUNNER_FILENAME, SandboxController
@@ -33,19 +33,23 @@ class SampleGenerator(BaseSampleGenerator):
 
 exercise = database.exercises.get_by_id(1)
 assert exercise
+assert exercise.id
 assert exercise.sample_gen_path
+
+exercise_controller.modifiy_exercise(exercise.id, BaseExerciseModel(
+        _auto_validate=False, # type: ignore
+        id=None, title=None, time_limit=None, memory_limit=None, diff_id=None,
+        context="Dois valores inteiros serão passados, o resultado deve ser a soma deles.",
+))
 # Teste de como rodaria o código para testar 
 # (o ideal seria testar antes de ser adicionado no banco)
 try:
-    code: str = ""
-    with open(exercise.sample_gen_path) as file:
-        code = file.read()
+    samples = exercise_controller.generate_samples_for_exercise(
+        exercise.id, 100, timeout=10
+    )
 
-    job_dir = sandbox_controller.prepare_generator_folder(code, str(exercise.id))
-    code_path = job_dir / GENERATOR_FILENAME
-    runner = CodeRunner(job_dir / RUNNER_FILENAME)
-    results = runner.run_python(90, [code_path, "SampleGenerator", 50])
-    print(results)
+    loaded_samples = exercise_controller.load_samples(exercise.id)
+    pass
 finally:
     database.save()
     sandbox_controller.cleanup_tmp()

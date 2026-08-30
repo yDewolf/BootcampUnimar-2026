@@ -1,2 +1,2 @@
 id,diff_id,title,context,time_limit,memory_limit,sample_gen_path,solution_template_path
-1,none,test,testing,1.0,16,test_database\uploads\exercises\ex_1\generator.py,test_database\uploads\exercises\ex_1\solution.py
+1,none,test,"Dois valores inteiros serão passados, o resultado deve ser a soma deles.",1.0,16,test_database\uploads\exercises\ex_1\generator.py,test_database\uploads\exercises\ex_1\solution.py

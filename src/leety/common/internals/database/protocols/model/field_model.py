@@ -122,6 +122,7 @@ class FieldModel:
     _unique_fields: tuple[str, ...]
     _data: dict[str, Any] = {}
 
+    _auto_validate: Field[bool] = Field(default=True)
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         cls._bake_header_keys()
@@ -130,7 +131,9 @@ class FieldModel:
     def __init__(self, **kwargs):
         self._data = {}
         self._set_from_dict(kwargs)
-        self.validate()
+
+        if self._auto_validate:
+            self.validate()
 
     def validate(self):
         for field_name in self.header_keys():
@@ -142,6 +145,8 @@ class FieldModel:
     
     def _set_from_dict(self, data_dict: dict[str, Any]):
         for key in self.header_keys(raw=True):
+            if not key in data_dict: continue
+
             val = data_dict.get(key)
             setattr(self, key, val)
         
