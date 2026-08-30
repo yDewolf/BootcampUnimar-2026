@@ -1,0 +1,4 @@
+id,author_id,exercise_id,valid,solve_time,sample_amount,correct_results
+1,1,1,True,1.402608499978669,100,100
+2,1,1,False,1.260981100029312,100,99
+3,1,1,False,1.2894157000118867,100,0

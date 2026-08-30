@@ -1,6 +1,12 @@
 import ast
+from enum import Enum
 
 from leety.common.utils.str_utils import split_in_lines
+
+class SolutionStatus(Enum):
+    RUNTIME_ERROR = "RUNTME_ERROR"
+    WRONG_ANSWER = "WRONG_ANSWER"
+    ACCEPTED = "ACCEPTED"
 
 class TemplateUtils:
     @staticmethod
@@ -59,3 +65,9 @@ f"""# Exercício - {title} #{id}
 # Contextualização:
 #{"\n#".join(context_lines)}"""
         )
+
+    @staticmethod
+    def create_function_comments(comment: str, max_width: int = 75) -> str:
+        comment_lines = split_in_lines(comment, max_width)
+        return f"#{"\n#".join(comment_lines)}"
+    

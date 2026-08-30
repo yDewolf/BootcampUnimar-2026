@@ -27,3 +27,15 @@ class ExerciseModel(BaseExerciseModel):
     sample_gen_path: Field[Optional[str]] = Field(default=None)
     solution_template_path: Field[Optional[str]] = Field(default=None)
     # solver_code: Field[str] = Field(default=None)        
+
+
+# Quando a solução é inválida
+class ExerciseAttempt(IndexableFieldModel[int]):
+    author_id: Field[int]
+    exercise_id: Field[int]
+
+    valid: SearchableField[bool]
+
+    solve_time: Field[Optional[float]] = Field(default=None)
+    sample_amount: Field[Optional[int]] = Field(default=None)
+    correct_results: Field[Optional[int]] = Field(default=None)

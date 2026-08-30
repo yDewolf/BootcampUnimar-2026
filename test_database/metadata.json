@@ -3,6 +3,7 @@
  "tables": [
   "users",
   "ex_difficulties",
-  "exercises"
+  "exercises",
+  "ex_attempts"
  ]
 }

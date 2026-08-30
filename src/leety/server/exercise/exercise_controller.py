@@ -54,6 +54,7 @@ class ExerciseController:
     # Exercise CRUD:
     
     # Registra o exercício no banco de dados e retorna se o código de geração é válido
+    # TODO: passar o usuário que está criando o exercício
     def create_exercise(self, exercise_data: ExerciseModel) -> bool:
         sample_gen_code = exercise_data._sample_gen_code
         if not sample_gen_code:
@@ -83,6 +84,12 @@ class ExerciseController:
                 del filtered_data[key]
 
         exercise._set_from_dict(filtered_data)
+        # Atualizar o template de solução
+        code_file = self.exercise_sample_gen_path(exercise_id)
+        if code_file.exists():
+            code = code_file.read_text(encoding="utf-8")
+            self._upload_solution_template(code, exercise)
+        
         return True
 
     def upload_sample_gen_code(self, exercise_id: int, sample_gen: str) -> bool:
@@ -114,7 +121,7 @@ class ExerciseController:
             raise Exception(f"Exercise #{exercise_id} doesn't have a valid sample generator")
         
         code = sample_path.read_text(encoding="utf-8")
-        output, time_elapsed = self._run_generator(code, exercise_id, amount, timeout, auto_cleanup=auto_cleanup)
+        output, time_elapsed = self._run_generator(code, amount, timeout, auto_cleanup=auto_cleanup)
 
         sample_path = self.exercise_sample_path(exercise_id)
         sample_path.write_text(output, encoding="utf-8")
@@ -146,14 +153,14 @@ class ExerciseController:
             return None
 
 
-    def _run_generator(self, code: str, exercise_id: int, sample_amount: int = 10, timeout: float = 1, auto_cleanup: bool = True) -> tuple[str, float]:
-        job_dir = self.sandbox_controller.prepare_generator_folder(code, str(exercise_id))
+    def _run_generator(self, code: str, sample_amount: int = 10, timeout: float = 1, auto_cleanup: bool = True) -> tuple[str, float]:
+        job_dir = self.sandbox_controller.prepare_generator_folder(code)
         code_path = job_dir / GENERATOR_FILENAME
         runner = CodeRunner(job_dir / RUNNER_FILENAME)
 
-        start_time = time.process_time()
+        start_time = time.perf_counter()
         output = runner.run_python(timeout, [code_path, "SampleGenerator", sample_amount])
-        elapsed = time.process_time() - start_time
+        elapsed = time.perf_counter() - start_time
 
         if auto_cleanup:
             self.sandbox_controller.cleanup_job(job_dir)
@@ -162,7 +169,7 @@ class ExerciseController:
     def _test_generator(self, code: str, exercise_id: Optional[int] = None) -> bool:
         exercise_id = exercise_id or -1
         try:
-            output, elapsed = self._run_generator(code, exercise_id, sample_amount=5, timeout=10)
+            output, elapsed = self._run_generator(code, sample_amount=5, timeout=10)
             test_cases  = json.loads(output)
             if not isinstance(test_cases, list):
                 raise Exception("test_cases should be a list of TestCase (TypedDict)")
@@ -202,7 +209,7 @@ class ExerciseController:
         solution_template = TemplateUtils.create_solution_template(
             annotations, 
             template_header=template_header, 
-            function_comments="#".join(split_in_lines("Implemente essa função para solucionar o problema descrito."))
+            function_comments=TemplateUtils.create_function_comments(comment="Implemente essa função para solucionar o problema descrito.")
         )
 
         sol_template_file = self.exercise_solution_template(exercise_data.id)

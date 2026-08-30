@@ -62,7 +62,7 @@ class SandboxController:
         shutil.copyfile(sample_lib_path, self.sample_lib_path)
 
 
-    def prepare_solution_folder(self, solution_code: str, solution_id: str) -> Path:
+    def prepare_solution_folder(self, solution_code: str) -> Path:
         job_dir = SandboxController._prepare_job_folder(
             self.solutions_path, solution_code, SOLUTION_FILENAME
         )
@@ -70,7 +70,7 @@ class SandboxController:
         shutil.copyfile(self.solution_runner_path, job_dir / RUNNER_FILENAME)
         return job_dir
 
-    def prepare_generator_folder(self, generator_code: str, exercise_id: str) -> Path:
+    def prepare_generator_folder(self, generator_code: str) -> Path:
         job_dir = SandboxController._prepare_job_folder(
             self.generators_path, generator_code, GENERATOR_FILENAME
         )

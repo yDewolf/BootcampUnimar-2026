@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from leety.common.database.models.exercise_model import ExerciseDifficulty, ExerciseModel
+from leety.common.database.models.exercise_model import ExerciseAttempt, ExerciseDifficulty, ExerciseModel
 from leety.common.database.models.user_model import UserModel
 from leety.common.internals.database.csvbase import Database
 from leety.common.internals.database.database_file import DBFileManager
@@ -25,6 +25,8 @@ class LeetyDatabase(Database):
 
     ex_difficulties: IndexableTable[ExerciseDifficulty]
     exercises: IndexableTable[ExerciseModel]
+
+    ex_attempts: IndexableTable[ExerciseAttempt]
 
     @property
     def file_manager(self) -> LeetyFileManager:  
