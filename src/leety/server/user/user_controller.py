@@ -17,9 +17,13 @@ class UserController:
             # simplesmente porque eu quis assim
             raise Exception("Admins must be inserted directly to the database")
 
-        if not self.is_username_unique(user_data.username):
+        if not self.is_username_registered(user_data.username):
             raise Exception(f"Username '{user_data.username}' is already in use")
-        
+
+        if user_data.id:
+            if self.user_exists(user_data.id):
+                raise Exception("User is already registered in the database")
+
         self.database.users.add_row(user_data)
         return True
 
@@ -44,11 +48,14 @@ class UserController:
         return True
 
 
-    def is_username_unique(self, username: str) -> bool:
-        return len(self.database.users.match_searchable_field({
-            UserModel.username: username
-        }) or []) > 0
+    def is_username_registered(self, username: str) -> bool:
+        return self.get_user_by_username(username) != None
 
+
+    def get_user_by_username(self, username: str) -> Optional[UserModel]:
+        return (self.database.users.match_searchable_field({
+            UserModel.username: username
+        }) or [None])[0]
 
     def get_user(self, user_id: int) -> Optional[UserModel]:
         return self.database.users.get_by_id(user_id)
@@ -56,7 +63,9 @@ class UserController:
     def user_exists(self, user_id: int) -> bool:
         return self.get_user(user_id) != None
 
-    def is_admin(self, user_id: int) -> bool:
+    def is_admin(self, user_id: Optional[int]) -> bool:
+        if user_id is None: return False
+        
         user = self.get_user(user_id)
         if not user:
             return False

@@ -1,0 +1,3 @@
+
+class EAdminOnlyAction(Exception):
+    pass

@@ -4,6 +4,8 @@ from pathlib import Path
 import time
 from typing import Any, Optional
 
+from leety.common.database.db_exceptions import EAdminOnlyAction
+from leety.common.database.models.user_model import UserModel
 from leety.common.utils.code_runner import CodeRunner
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseDifficulty, ExerciseModel
@@ -33,9 +35,13 @@ class ExerciseController:
         self.exercise_uploads.mkdir(exist_ok=True)
 
     # Difficulty CRUD
-    def create_exercise_diff(self, diff_data: ExerciseDifficulty):
+    def create_exercise_diff(self, diff_data: ExerciseDifficulty) -> bool:
+        if self.get_difficulty(diff_data.id or ""):
+            return False
+        
         diff_data.validate()
         self.database.ex_difficulties.add_row(diff_data)
+        return True
     
     def get_difficulty(self, id: str) -> Optional[ExerciseDifficulty]:
         return self.database.ex_difficulties.get_by_id(id)
@@ -58,7 +64,7 @@ class ExerciseController:
     # Registra o exercício no banco de dados e retorna se o código de geração é válido
     def create_exercise(self, author_id: int, exercise_data: ExerciseModel) -> bool:
         if not self.user_controller.is_admin(author_id):
-            raise Exception(f"Author must be an admin to create exercises. id: {author_id}")
+            raise EAdminOnlyAction(f"Author must be an admin to create exercises. id: {author_id}")
 
         sample_gen_code = exercise_data._sample_gen_code
         if not sample_gen_code:
@@ -75,9 +81,14 @@ class ExerciseController:
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.database.exercises.get_by_id(exercise_id)
 
-    def modifiy_exercise(self, author_id: int, exercise_id: int, new_data: BaseExerciseModel) -> bool:
+    def get_exercise_by_diff(self, diff_id: str) -> list[ExerciseModel]:
+        return self.database.exercises.match_searchable_field({
+            ExerciseModel.diff_id: diff_id
+        }) or []
+
+    def modify_exercise(self, author_id: int, exercise_id: int, new_data: BaseExerciseModel) -> bool:
         if not self.user_controller.is_admin(author_id):
-            raise Exception(f"To modify exercises the user must be an admin. id: {author_id}")
+            raise EAdminOnlyAction(f"To modify exercises the user must be an admin. id: {author_id}")
         
         exercise = self.database.exercises.get_by_id(exercise_id)
         if not exercise:
@@ -104,6 +115,7 @@ class ExerciseController:
         
         return True
 
+    # TODO: teoricamente isso aqui também precisaria de autoria
     def upload_sample_gen_code(self, exercise_id: int, sample_gen: str) -> bool:
         exercise_data = self.get_exercise(exercise_id)
         if not exercise_data:
@@ -127,6 +139,7 @@ class ExerciseController:
         self.database.exercises.remove_row_id(exercise_id)
 
     # Exercise Sample "CRUD":
+    # TODO: lembrar de chamar isso aqui no servidor quando criar/modificar o exercício
     def generate_samples_for_exercise(self, exercise_id: int, amount: int = 50, timeout: float = 10, auto_cleanup: bool = True) -> Optional[list[TestCase]]:
         exercise = self.get_exercise(exercise_id)
         if not exercise:
