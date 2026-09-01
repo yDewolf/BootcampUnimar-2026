@@ -69,6 +69,12 @@ class Server(RouterProtocol):
     def admin_delete_user(self, user_id: int, admin_id: int, admin_password: str): 
         return self.user_controller.admin_delete_user(user_id, admin_id, admin_password)
          
+    def get_user_data(self, user_id: int) -> Optional[UserModel]:
+        data = self.user_controller.get_user(user_id)
+        if not data: return None
+
+        user_data = UserModel(id=user_id, username=data.username, password=None)
+        return user_data
 
     def username_exists(self, username: str) -> bool: 
         return self.user_controller.is_username_registered(username)

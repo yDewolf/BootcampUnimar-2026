@@ -74,6 +74,7 @@ class ExerciseController:
         assert exercise_data.id, "Exercise ID wasn't auto filled"
         self._setup_exercise_folder(exercise_data.id)
         exercise_data._sample_gen_code = None
+        exercise_data.contributors = []
 
         is_valid = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
         return is_valid
@@ -94,7 +95,7 @@ class ExerciseController:
         if not exercise:
             raise Exception(f"Couldn't find Exercise with id: {exercise_id}")
         
-        assert exercise.contributors
+        assert exercise.contributors != None
         if not author_id in exercise.contributors:
             exercise.contributors.append(author_id)
         

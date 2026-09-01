@@ -10,6 +10,7 @@ class RouterProtocol(Protocol):
     def delete_user(self, user_id: int, password: str): raise NotImplementedError()
     def admin_delete_user(self, user_id: int, admin_id: int, admin_password: str): raise NotImplementedError()
 
+    def get_user_data(self, user_id: int) -> Optional[UserModel]: raise NotImplementedError()
     def username_exists(self, username: str) -> bool: raise NotImplementedError()
     def user_exists(self, user_id: int) -> bool: raise NotImplementedError()
 

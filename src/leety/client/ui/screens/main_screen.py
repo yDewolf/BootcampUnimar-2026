@@ -120,11 +120,11 @@ class MainScreen(MFrame[AppProtocol]):
         try:
             exercises = self.controller.server.get_exercises(difficulty.id)
         except Exception as e:
-            ttk.Label(self.content_frame, text=f"Erro ao carregar exercícios: {e}").pack()
+            default_text(self.content_frame, text=f"Erro ao carregar exercícios: {e}").pack()
             return
 
         if not exercises:
-            ttk.Label(self.content_frame, text="Nenhum exercício encontrado para esta dificuldade").pack(pady=20)
+            default_text(self.content_frame, text="Nenhum exercício encontrado para esta dificuldade").pack(pady=20)
             return
 
         list_container = ttk.Frame(self.content_frame)
@@ -138,12 +138,16 @@ class MainScreen(MFrame[AppProtocol]):
 
         default_text(headers_frame, "Título").grid(row=0, column=0, sticky="w")
         default_text(headers_frame, "Tempo Limite").grid(row=0, column=1, sticky="w")
-        default_text(headers_frame, "Autor ID").grid(row=0, column=2, sticky="w")
+        default_text(headers_frame, "Autor").grid(row=0, column=2, sticky="w")
 
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
         for exercise in exercises:
-            exercise_row(list_container, exercise)
+            author_name: str = "Desconhecido"
+            if exercise.author_id:
+                author = self.controller.server.get_user_data(exercise.author_id)
+                author_name = author.username if author else author_name
+            exercise_row(list_container, exercise, author_name)
             ttk.Separator(list_container, orient="horizontal").pack(fill="x")
             
 
@@ -156,6 +160,8 @@ class MainScreen(MFrame[AppProtocol]):
     def goto_register(self):
         self.controller.change_to_screen(target_screen=ScreenNames.REGISTER.value)
 
+
+# Componentes
 
 def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callable[[ExerciseDifficulty], None]) -> ttk.Frame:
     card = ttk.Frame(parent, padding=15, relief="groove")
@@ -174,14 +180,14 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     ).grid(row=2, sticky="e")
     return card
 
-def exercise_row(parent: tk.Misc, exercise: ExerciseModel) -> ttk.Frame:
+def exercise_row(parent: tk.Misc, exercise: ExerciseModel, author_name: str) -> ttk.Frame:
     row_frame = ttk.Frame(parent, padding=(5, 8))
     row_frame.pack(fill="x")
     row_frame.columnconfigure(0, weight=3)
     row_frame.columnconfigure(1, weight=1)
     row_frame.columnconfigure(2, weight=1)
 
-    author_display = str(exercise.author_id) if exercise.author_id is not None else "Desconhecido"
+    author_display = author_name
 
     default_text(row_frame, exercise.title).grid(row=0, column=0, sticky="w")
     default_text(row_frame, f"{exercise.time_limit}s").grid(row=0, column=1, sticky="w")

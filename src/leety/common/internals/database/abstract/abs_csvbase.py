@@ -77,4 +77,3 @@ class _Database:
             table_name: [row._data for row in table.rows]
             for table_name, table in self._tables.items()
         }
-    

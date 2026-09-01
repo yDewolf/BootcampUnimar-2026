@@ -43,7 +43,7 @@ exercise = database.exercises.get_by_id(1)
 assert exercise
 assert exercise.id
 
-exercise_controller.modify_exercise(exercise.id, BaseExerciseModel(
+exercise_controller.modify_exercise(admin_user.id, exercise.id, BaseExerciseModel(
     _auto_validate=False, # type: ignore
     id=None, title=None, time_limit=None, memory_limit=None, diff_id=None,
     context="Dois valores inteiros serão passados, o resultado deve ser a soma deles.",
