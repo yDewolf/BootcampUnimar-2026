@@ -74,7 +74,6 @@ class ExerciseController:
         assert exercise_data.id, "Exercise ID wasn't auto filled"
         self._setup_exercise_folder(exercise_data.id)
         exercise_data._sample_gen_code = None
-        exercise_data.contributors = []
 
         is_valid = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
         return is_valid
@@ -100,8 +99,8 @@ class ExerciseController:
             exercise.contributors.append(author_id)
         
         filtered_data = dict(new_data._data)
-        del filtered_data["id"]
-        del filtered_data["author_id"]
+        if "id" in filtered_data: del filtered_data["id"]
+        if "author_id" in filtered_data: del filtered_data["author_id"]
         for key in new_data._data:
             if key in ("id", "author_id"): continue
             if new_data._data[key] is None:

@@ -173,6 +173,8 @@ class FieldModel:
         hints = cls._get_type_hints()
         unique_fields: list[str] = []
         for field_name in cls.header_keys(raw=True):
+            cls_field: Optional[Field[Any]] = getattr(cls, field_name, None)
+            default_value = cls_field.default_value if cls_field else None
             field_instance: Optional[Field[Any]] = cls.__dict__.get(field_name)
             hint = hints[field_name]
             origin = get_origin(hint) or hint
@@ -182,7 +184,7 @@ class FieldModel:
             if field_instance == None:
                 if not issubclass(origin, Field): continue
 
-                field_instance = hint(id=field_name, value_type_hint=value_type)
+                field_instance = hint(id=field_name, default=default_value, value_type_hint=value_type)
                 setattr(cls, field_name, field_instance)
 
             if field_instance:
