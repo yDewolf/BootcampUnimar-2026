@@ -43,11 +43,11 @@ class LoginScreen(MFrame[AppProtocol]):
             if not user_data:
                 raise Exception(f"Não foi possível logar como {username}")
 
-            messagebox.showinfo("Sucesso", f"Entrando como {username}")
             self.username_var.set("")
             self.password_var.set("")
-            
             self._go_to_index()
+            
+            messagebox.showinfo("Sucesso", f"Logado como {username}")
         except Exception as e:
             messagebox.showerror("Erro", f"Falha no login: {str(e)}")
 

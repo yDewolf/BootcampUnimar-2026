@@ -13,7 +13,7 @@ class AppProtocol(ScreenManager):
     def server(self) -> Server: return self._connected_server
 
     @property
-    def logged_user(self): return self.logged_user
+    def logged_user(self): return self._logged_user
 
     def log_in(self, username: str, password: str) -> Optional[UserModel]:
         self._logged_user = self.server.log_as_user(username, password)

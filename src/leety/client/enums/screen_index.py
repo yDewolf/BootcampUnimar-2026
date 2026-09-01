@@ -5,3 +5,4 @@ class ScreenNames(Enum):
 
     REGISTER = "register"
     LOGIN = "login"
+    PROFILE = "profile"
