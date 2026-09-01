@@ -15,7 +15,7 @@ from leety.server.user.user_controller import UserController
 
 import leety.server.exercise as exercise
 
-EXERCISE_FOLDER: Path = Path(str(exercise.__path__))
+EXERCISE_FOLDER: Path = Path(exercise.__file__).resolve().parent
 INTERNAL_TEMPLATES_FOLDER: Path = EXERCISE_FOLDER / "internal_templates"
 class Server(RouterProtocol):
     database: LeetyDatabase

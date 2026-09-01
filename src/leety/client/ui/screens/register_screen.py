@@ -1,7 +1,7 @@
 from tkinter import ttk
 import tkinter as tk
 
-from leety.client.ui.screens.screen_protocols import MFrame, ScreenManager
+from leety.client.ui.screens.abstract_screen import MFrame, ScreenManager
 
 class RegisterScreen(MFrame):
     def __init__(self, parent: tk.Misc, controller: ScreenManager):

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from leety.client.ui.screens.index import ScreenNames
-from leety.client.ui.screens.screen_protocols import MFrame, ScreenManager
+from leety.client.ui.screens.abstract_screen import MFrame, ScreenManager
 
 class MainScreen(MFrame):
     def __init__(self, parent: tk.Misc, controller: ScreenManager):
