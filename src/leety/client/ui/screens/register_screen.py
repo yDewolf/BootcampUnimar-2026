@@ -8,6 +8,7 @@ from leety.client.ui.abstract_screen import MFrame
 class RegisterScreen(MFrame[AppProtocol]):
     username_var: tk.StringVar
     password_var: tk.StringVar
+    remember_me: tk.BooleanVar
 
     _text_padding: int = 5
     _button_padding: int = 10
@@ -16,6 +17,7 @@ class RegisterScreen(MFrame[AppProtocol]):
 
         self.username_var = tk.StringVar()
         self.password_var = tk.StringVar()
+        self.remember_me = tk.BooleanVar()
         self._setup_widgets()
 
     def _setup_widgets(self):
@@ -25,8 +27,10 @@ class RegisterScreen(MFrame[AppProtocol]):
         ttk.Label(self, text="Password:").grid(column=0, row=1, sticky="w", pady=self._text_padding)
         ttk.Entry(self, textvariable=self.password_var, show="*").grid(column=1, row=1, sticky="ew", pady=self._text_padding)
 
-        ttk.Button(self, text="Cadastrar", command=self._handle_register).grid(column=1, row=2, sticky="e", pady=self._button_padding)
-        ttk.Button(self, text="Já tem conta? Login", command=self._go_to_login).grid(column=0, row=2, sticky="w", pady=self._button_padding)
+        ttk.Checkbutton(self, text="Matenha-me logado", variable=self.remember_me).grid(column=0, row=2, sticky="ew", pady=self._text_padding)
+
+        ttk.Button(self, text="Cadastrar", command=self._handle_register).grid(column=1, row=3, sticky="e", pady=self._button_padding)
+        ttk.Button(self, text="Já tem conta? Login", command=self._go_to_login).grid(column=0, row=3, sticky="w", pady=self._button_padding)
 
     def _handle_register(self):
         username = self.username_var.get().strip()
@@ -37,7 +41,7 @@ class RegisterScreen(MFrame[AppProtocol]):
             return
         try:
             self.controller.server.register_user(username, password)
-            user_data = self.controller.log_in(username, password)
+            user_data = self.controller.log_in(username, password, self.remember_me.get())
             if not user_data:
                 raise Exception(f"Não foi possível logar como {username}")
 
