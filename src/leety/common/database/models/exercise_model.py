@@ -8,6 +8,7 @@ class ExerciseDifficulty(IndexableFieldModel[str]):
     capitalized_name: Field[str]
     description: Field[str] = Field(default=None)
 
+# basicamente metadados
 class BaseExerciseModel(IndexableFieldModel[int]):
     # TODO: a implementação do relacionamento vai ser manual mesmo e gg, 
     # porque vai dar muito trabalho implementar o sistema de relação agora
@@ -22,7 +23,7 @@ class BaseExerciseModel(IndexableFieldModel[int]):
     time_limit: Field[float]
     memory_limit: Field[int]
 
-
+# informações que são geradas após o exercício ser testado
 class ExerciseModel(BaseExerciseModel):
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
 
@@ -33,7 +34,10 @@ class ExerciseModel(BaseExerciseModel):
     # usado para comparar com o tempo das soluções
     benchmark_time: Field[Optional[float]] = Field(default=0)
     benchmark_samples: Field[Optional[int]] = Field(default=None)
-    # solver_code: Field[str] = Field(default=None)        
+
+    # Define se o exercício é válido, ou seja pode ser executado pelo servidor,
+    # tem samples e apresenta template para resolução
+    is_valid: Field[bool] = Field(default=False)
 
 
 # Quando a solução é inválida

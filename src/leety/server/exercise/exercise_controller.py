@@ -75,8 +75,8 @@ class ExerciseController:
         self._setup_exercise_folder(exercise_data.id)
         exercise_data._sample_gen_code = None
 
-        valid_generator = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
-        return valid_generator
+        is_valid = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
+        return is_valid
 
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.database.exercises.get_by_id(exercise_id)
@@ -121,7 +121,10 @@ class ExerciseController:
         if not exercise_data:
             return False
 
-        if not self._test_generator(sample_gen, exercise_id):
+        is_generator_valid = self._test_generator(sample_gen, exercise_id)
+        exercise_data.is_valid = is_generator_valid
+
+        if not is_generator_valid:
             return False
 
         output, benchmark_time = self._run_generator(sample_gen, DEFAULT_BENCHMARK_SAMPLES, timeout=90)

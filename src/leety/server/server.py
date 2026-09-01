@@ -101,6 +101,17 @@ class Server(RouterProtocol):
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.exercise_controller.get_exercise(exercise_id)
 
+    def get_exercise_template(self, exercise_id: int) -> Optional[str]: 
+        if not self.exercise_controller.get_exercise(exercise_id):
+            return None
+        
+        template_path = self.exercise_controller.exercise_solution_template(exercise_id)
+        if not template_path.exists():
+            return None
+        
+        return template_path.read_text(encoding="utf-8")
+
+
     def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> bool: 
         self._validate_admin_only_act(admin_user, "Only admins can create exercises")
         assert admin_user.id

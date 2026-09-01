@@ -26,6 +26,8 @@ class RouterProtocol(Protocol):
     def get_exercises(self, diff_id: str) -> list[ExerciseModel]: raise NotImplementedError()
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]: raise NotImplementedError()
 
+    def get_exercise_template(self, exercise_id: int) -> str: raise NotImplementedError()
+
     def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> bool: raise NotImplementedError()
     def modify_exercise(self, admin_user: UserModel, exercise_id: int, new_data: BaseExerciseModel) -> bool: raise NotImplementedError()
     def upload_sample_gen_code(self, admin_user: UserModel, exercise_id: int, code: str) -> bool: raise NotImplementedError()
@@ -37,4 +39,3 @@ class RouterProtocol(Protocol):
     # retorna todos os códigos que o usuário fez upload em um exercício
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()
     def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()
-
