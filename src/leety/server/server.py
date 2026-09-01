@@ -92,6 +92,9 @@ class Server(RouterProtocol):
         return self.user_controller.is_admin(user_id)
 
     # ExerciseController:
+    def get_difficulties(self) -> list[ExerciseDifficulty]:
+        return self.database.ex_difficulties.rows
+
     def get_difficulty(self, id: str) -> Optional[ExerciseDifficulty]: 
         return self.exercise_controller.get_difficulty(id)
     
@@ -113,6 +116,9 @@ class Server(RouterProtocol):
         return self.exercise_controller.delete_difficulty(id)
 
     # Cria um exercício com os dados específicos
+    def get_all_exercises(self) -> list[ExerciseModel]:
+        return self.database.exercises.rows
+
     def get_exercises(self, diff_id: str) -> list[ExerciseModel]:
         return self.exercise_controller.get_exercise_by_diff(diff_id)
     

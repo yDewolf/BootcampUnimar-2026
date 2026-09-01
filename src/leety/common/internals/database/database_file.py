@@ -77,14 +77,14 @@ class DBFileManager:
                 reader = csv.DictReader(f)
                 
                 for row_dict in reader:
-                    parsed_data = self._parse_row_data(model_cls, row_dict)
+                    parsed_data = DBFileManager._parse_row_data(model_cls, row_dict)
                     row_instance = model_cls(**parsed_data)
                     table.add_row(row_instance)
 
         self._db_dir = path
 
-
-    def _parse_row_data(self, model_cls: type, raw_data: dict[str, Any]) -> dict[str, Any]:
+    @staticmethod
+    def _parse_row_data(model_cls: type, raw_data: dict[str, Any]) -> dict[str, Any]:
         casted_data: dict[str, Any] = {}
         for field_name, value in raw_data.items():
             if value is None or value == "":

@@ -1,1 +1,4 @@
 id,capitalized_name,description
+easy,Fácil,Exercícios simples que exigem lógica básica
+medium,Médio,Exercícios um pouco mais complexos que exigem noções de estrutura de dados
+hard,Difícil,Exercícios que envolvem lógica e estruturas de dados complexos

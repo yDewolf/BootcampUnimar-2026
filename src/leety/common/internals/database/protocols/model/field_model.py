@@ -173,8 +173,7 @@ class FieldModel:
         hints = cls._get_type_hints()
         unique_fields: list[str] = []
         for field_name in cls.header_keys(raw=True):
-            field_instance: Optional[Field[Any]] = getattr(cls, field_name, None)
-
+            field_instance: Optional[Field[Any]] = cls.__dict__.get(field_name)
             hint = hints[field_name]
             origin = get_origin(hint) or hint
             args = get_args(hint)

@@ -17,6 +17,7 @@ class RouterProtocol(Protocol):
     def log_as_user(self, username: str, password: str) -> Optional[UserModel]: raise NotImplementedError()
     def is_admin(self, user_id: int) -> bool: raise NotImplementedError()
 
+    def get_difficulties(self) -> list[ExerciseDifficulty]: raise NotImplementedError()
     def get_difficulty(self, id: str) -> Optional[ExerciseDifficulty]: raise NotImplementedError()
     def create_exercise_diff(self, admin_user: UserModel, diff_data: ExerciseDifficulty): raise NotImplementedError()
     def modify_difficulty(self, admin_user: UserModel, id: str, capitalized_name: Optional[str] = None, description: Optional[str] = None) -> bool: raise NotImplementedError()

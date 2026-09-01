@@ -2,6 +2,7 @@ from typing import Optional
 from pathlib import Path
 import json
 
+from leety.common.internals.database.database_file import DBFileManager
 from leety.client.data.client_cfg import ClientConfig
 from leety.client.controllers.screen_manager import ScreenManager
 from leety.common.database.models.user_model import UserModel
@@ -46,4 +47,5 @@ class AppProtocol(ScreenManager):
             return
         
         data = json.loads(self._cfg_path.read_text(encoding="utf-8"))
-        self._cfg._set_from_dict(data)
+        parsed_data = DBFileManager._parse_row_data(ClientConfig, data)
+        self._cfg._set_from_dict(parsed_data)
