@@ -37,7 +37,7 @@ class ExerciseModel(BaseExerciseModel):
 
     # Define se o exercício é válido, ou seja pode ser executado pelo servidor,
     # tem samples e apresenta template para resolução
-    is_valid: Field[bool] = Field(default=False)
+    is_valid: Field[Optional[bool]] = Field(default=False)
 
 
 # Quando a solução é inválida

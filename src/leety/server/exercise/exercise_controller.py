@@ -37,7 +37,7 @@ class ExerciseController:
     # Difficulty CRUD
     def create_exercise_diff(self, diff_data: ExerciseDifficulty) -> bool:
         if self.get_difficulty(diff_data.id or ""):
-            return False
+            raise Exception(f"Difficulty #{diff_data.id} is already registered")
         
         diff_data.validate()
         self.database.ex_difficulties.add_row(diff_data)
@@ -49,7 +49,7 @@ class ExerciseController:
     def modify_difficulty(self, id: str, capitalized_name: Optional[str] = None, description: Optional[str] = None) -> bool:
         difficulty = self.database.ex_difficulties.get_by_id(id)
         if not difficulty:
-            return False
+            raise Exception(f"Couldn't find difficulty with id: {id}")
         
         difficulty.capitalized_name = capitalized_name or difficulty.capitalized_name
         difficulty.description = description or difficulty.description
@@ -92,7 +92,7 @@ class ExerciseController:
         
         exercise = self.database.exercises.get_by_id(exercise_id)
         if not exercise:
-            return False
+            raise Exception(f"Couldn't find Exercise with id: {exercise_id}")
         
         assert exercise.contributors
         if not author_id in exercise.contributors:

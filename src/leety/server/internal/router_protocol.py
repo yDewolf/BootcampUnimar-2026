@@ -6,7 +6,7 @@ from leety.common.database.models.user_model import UserModel
 # TODO: implementar esse router dps
 # TODO: talvez fazer um sistema de autenticação simples com token JWT
 class RouterProtocol(Protocol):
-    def register_user(self, user_data: UserModel): raise NotImplementedError()
+    def register_user(self, username: str, password: str): raise NotImplementedError()
     def delete_user(self, user_id: int, password: str): raise NotImplementedError()
     def admin_delete_user(self, user_id: int, admin_id: int, admin_password: str): raise NotImplementedError()
 

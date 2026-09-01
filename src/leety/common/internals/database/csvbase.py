@@ -20,7 +20,11 @@ class Database(_Database):
     @classmethod
     def from_folder(cls, path: str | Path) -> Self:
         database = cls(path)
-        database.reload_folder()
+        try:
+            database.reload_folder()
+        except FileNotFoundError:
+            database.save()
+
         return database
     
 

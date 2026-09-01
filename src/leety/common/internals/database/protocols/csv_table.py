@@ -161,7 +161,7 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
     def _setup_searchables(self):
         for field_name in self.model_cls().searchable_fields():
             field_attr = getattr(self.model_cls(), field_name)
-            if isinstance(field_attr, IdField):
+            if isinstance(field_attr, SearchableField):
                 self._searchable_index[field_name] = {}
 
     # Actual methods

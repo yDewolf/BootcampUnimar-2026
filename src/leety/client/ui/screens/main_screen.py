@@ -5,7 +5,7 @@ from leety.client.app_protocol import AppProtocol
 from leety.client.enums.screen_index import ScreenNames
 from leety.client.ui.abstract_screen import MFrame
 
-class MainScreen(MFrame):
+class MainScreen(MFrame[AppProtocol]):
     def __init__(self, parent: tk.Misc, controller: AppProtocol):
         super().__init__(parent, controller)
         label = tk.Label(self, text="Tela Inicial")

@@ -22,11 +22,15 @@ class ScreenManager(ScreenManagerProtocol):
             frame.grid(row=0, column=0, sticky="nsew")
         
         self._current_frame_idx = 0
-        self._frame_order = [self._frames[default_frame]]
+        self._frame_order = []
+        self.change_to_screen(default_frame)
 
     def change_to_screen(self, target_screen: str):
         screen = self._frames.get(target_screen)
-        if screen: screen.tkraise()
+        if screen: 
+            self._current_frame_idx = len(self._frame_order)
+            self._frame_order.append(screen)
+            screen.tkraise()
 
     def forward(self):
         if self._current_frame_idx + 1 >= len(self._frame_order):

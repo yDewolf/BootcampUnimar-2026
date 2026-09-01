@@ -49,7 +49,7 @@ class UserController:
 
 
     def is_username_registered(self, username: str) -> bool:
-        return self.get_user_by_username(username) != None
+        return self.get_user_by_username(username) == None
 
 
     def get_user_by_username(self, username: str) -> Optional[UserModel]:

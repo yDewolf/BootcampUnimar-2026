@@ -15,8 +15,9 @@ class AppProtocol(ScreenManager):
     @property
     def logged_user(self): return self.logged_user
 
-    def log_in(self, username: str, password: str):
+    def log_in(self, username: str, password: str) -> Optional[UserModel]:
         self._logged_user = self.server.log_as_user(username, password)
+        return self._logged_user
 
     def log_out(self):
         self._logged_user = None

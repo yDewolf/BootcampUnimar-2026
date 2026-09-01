@@ -1,7 +1,7 @@
-
-# basicamente um wrapper com os controllers necessários para fazer as coisas funcionarem
 from pathlib import Path
 from typing import Optional
+import threading
+import time
 
 from leety.common.database.db_exceptions import EAdminOnlyAction
 from leety.common.database.leety_db import LeetyDatabase
@@ -17,8 +17,12 @@ import leety.server.exercise as exercise
 
 EXERCISE_FOLDER: Path = Path(exercise.__file__).resolve().parent
 INTERNAL_TEMPLATES_FOLDER: Path = EXERCISE_FOLDER / "internal_templates"
+DATABASE_SAVE_INTERVAL: float = 5 * 60
+# basicamente um wrapper com os controllers necessários para fazer as coisas funcionarem
+
 class Server(RouterProtocol):
     database: LeetyDatabase
+    db_save_thread: threading.Thread
 
     user_controller: UserController
 
@@ -26,9 +30,13 @@ class Server(RouterProtocol):
     exercise_controller: ExerciseController
     solution_controller: SolutionController
 
-    def __init__(self, db_name: str = "test_database", sandbox_root: str = "_sandbox") -> None:
-        self.database = LeetyDatabase(db_name)
+    def _save_db_worker(self):
+        while True:
+            self.database.save()
+            time.sleep(DATABASE_SAVE_INTERVAL)
 
+    def __init__(self, db_name: str = "test_database", sandbox_root: str = "_sandbox") -> None:
+        self.database = LeetyDatabase.from_folder(db_name)
         self.user_controller = UserController(self.database)
 
         self.sandbox_controller = SandboxController(
@@ -40,13 +48,20 @@ class Server(RouterProtocol):
 
         self.exercise_controller = ExerciseController(self.database, self.user_controller, self.sandbox_controller)
         self.solution_controller = SolutionController(self.database, self.sandbox_controller, self.exercise_controller)
+        self._setup_and_start_db_thread()
+
+    def _setup_and_start_db_thread(self):
+        self.db_save_thread = threading.Thread(target=self._save_db_worker, daemon=True)
+        self.db_save_thread.start()
 
     # TODO: talvez enviar de volta as informações dentro de um dict
     # Rotas:
 
     # UserController:
-    def register_user(self, user_data: UserModel): 
-        return self.user_controller.register_user(user_data)
+    def register_user(self, username: str, password: str):
+        user_data = UserModel(id=None, username=username, password=password) 
+        self.user_controller.register_user(user_data)
+        self.database.save()
 
     def delete_user(self, user_id: int, password: str): 
         return self.user_controller.delete_user(user_id, password)
@@ -82,12 +97,15 @@ class Server(RouterProtocol):
     
     def create_exercise_diff(self, admin_user: UserModel, diff_data: ExerciseDifficulty): 
         self._validate_admin_only_act(admin_user, "Only admins can create difficulties")
-        return self.exercise_controller.create_exercise_diff(diff_data)
+        self.exercise_controller.create_exercise_diff(diff_data)
+        self.database.save()
 
 
     def modify_difficulty(self, admin_user: UserModel, id: str, capitalized_name: Optional[str] = None, description: Optional[str] = None) -> bool:
         self._validate_admin_only_act(admin_user, "Only admins can modify difficulties")
-        return self.exercise_controller.modify_difficulty(id, capitalized_name, description)
+        result = self.exercise_controller.modify_difficulty(id, capitalized_name, description)
+        self.database.save()
+        return result
 
 
     def delete_difficulty(self, admin_user: UserModel, id: str):
@@ -115,17 +133,23 @@ class Server(RouterProtocol):
     def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> bool: 
         self._validate_admin_only_act(admin_user, "Only admins can create exercises")
         assert admin_user.id
-        return self.exercise_controller.create_exercise(admin_user.id, exercise_data)
+        is_valid = self.exercise_controller.create_exercise(admin_user.id, exercise_data)
+        self.database.save()
+        return is_valid
 
     def modify_exercise(self, admin_user: UserModel, exercise_id: int, new_data: BaseExerciseModel) -> bool: 
         self._validate_admin_only_act(admin_user, "Only admins can modify exercises")
         assert admin_user.id
-        return self.exercise_controller.modify_exercise(admin_user.id, exercise_id, new_data)
+        result = self.exercise_controller.modify_exercise(admin_user.id, exercise_id, new_data)
+        self.database.save()
+        return result
 
     def upload_sample_gen_code(self, admin_user: UserModel, exercise_id: int, code: str) -> bool:
         self._validate_admin_only_act(admin_user, "Only admins can modify exercises")
         assert admin_user.id
-        return self.exercise_controller.upload_sample_gen_code(exercise_id, code)
+        result = self.exercise_controller.upload_sample_gen_code(exercise_id, code)
+        self.database.save()
+        return result
 
     def delete_exercise(self, admin_user: UserModel, exercise_id: int): 
         self._validate_admin_only_act(admin_user, "Only admins can modify exercises")
@@ -138,7 +162,9 @@ class Server(RouterProtocol):
     # retorna o resultado, se o código funciona ou não
     def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, dict]:
         assert user.id, "User must have an id to submit attempts"
-        return self.solution_controller.submit_attempt(user.id, exercise_id, attempt_code)
+        result = self.solution_controller.submit_attempt(user.id, exercise_id, attempt_code)
+        self.database.save()
+        return result
 
     # retorna todos os códigos que o usuário fez upload em um exercício
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]: 
