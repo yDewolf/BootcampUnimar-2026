@@ -1,11 +1,11 @@
 import tkinter as tk
 from typing import Optional
 
-from leety.client.ui.screens.abstract_screen import MFrame
-from leety.client.ui.screens.index import ScreenNames
+from leety.client.app_protocol import AppProtocol
+from leety.client.ui.abstract_screen import MFrame
+from leety.client.enums.screen_index import ScreenNames
 from leety.client.ui.screens.register_screen import RegisterScreen
 from leety.client.ui.screens.main_screen import MainScreen
-from leety.client.ui.screens.abstract_screen import ScreenManager
 from leety.server.server import Server
 
 # nome provisório btw
@@ -14,12 +14,7 @@ DEFAULT_SIZE = (640, 480)
 
 INTERNAL_SERVER = Server()
 
-class AppRoot(tk.Tk, ScreenManager):
-    _connected_server: Server
-
-    @property
-    def server(self) -> Server: return self._connected_server
-
+class AppRoot(tk.Tk, AppProtocol):
     def __init__(self, frames: dict[ScreenNames, type[MFrame]], default_frame: str):
         self._connected_server = INTERNAL_SERVER
         super().__init__()

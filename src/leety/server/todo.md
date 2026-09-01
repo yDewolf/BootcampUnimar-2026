@@ -1,4 +1,4 @@
-- [ ] Implementar o sandbox para rodar códigos de forma "segura"
-- [ ] Implementar o gerador de samples e os exercícios de código em geral
-- [ ] Implementar um router simples com funções para os usuários conseguirem fazer upload de código, criar conta, etc
-- [ ] Fazer uma classe Server que unifica o Router, Database e outras coisas em um lugar só
+- [x] Implementar o sandbox para rodar códigos de forma "segura"
+- [x] Implementar o gerador de samples e os exercícios de código em geral
+- [x] Implementar um router simples com funções para os usuários conseguirem fazer upload de código, criar conta, etc
+- [x] Fazer uma classe Server que unifica o Router, Database e outras coisas em um lugar só

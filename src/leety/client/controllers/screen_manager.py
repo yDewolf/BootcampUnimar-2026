@@ -1,8 +1,9 @@
 import tkinter as tk
 
-from leety.client.ui.screens.index import ScreenNames
+from leety.client.enums.screen_index import ScreenNames
+from leety.client.ui.abstract_screen import MFrame, ScreenManagerProtocol
 
-class ScreenManager:
+class ScreenManager(ScreenManagerProtocol):
     root_container: tk.Frame
 
     _frames: dict[str, tk.Frame]
@@ -41,10 +42,3 @@ class ScreenManager:
         self._current_frame_idx -= 1
         frame = self._frame_order[self._current_frame_idx]
         frame.tkraise()
-
-
-class MFrame(tk.Frame):
-    controller: ScreenManager
-    def __init__(self, parent: tk.Misc, controller: ScreenManager):
-        super().__init__(parent)
-        self.controller = controller
