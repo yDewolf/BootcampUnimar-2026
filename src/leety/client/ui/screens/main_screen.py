@@ -5,6 +5,7 @@ from typing import Callable
 from leety.client.app_protocol import AppProtocol
 from leety.client.enums.screen_index import ScreenNames
 from leety.client.ui.abstract_screen import MFrame
+from leety.client.ui.screens.exercise_screen import ExerciseScreen
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseDifficulty, ExerciseModel
 
@@ -19,6 +20,7 @@ class MainScreen(MFrame[AppProtocol]):
         super().__init__(parent, controller)
         self.search_var = tk.StringVar()
         self._setup_widgets()
+        self.show_difficulties_grid()
 
     def _setup_widgets(self):
         self.columnconfigure(0, weight=1)
@@ -69,7 +71,9 @@ class MainScreen(MFrame[AppProtocol]):
 
     def tkraise(self, *args, **kwargs):
         self.refresh_auth_button()
-        self.show_difficulties_grid()
+        if not isinstance(self.controller._previous_frame, ExerciseScreen):
+            self.show_difficulties_grid()
+
         super().tkraise(*args, **kwargs)
 
 
@@ -130,15 +134,15 @@ class MainScreen(MFrame[AppProtocol]):
         list_container = ttk.Frame(self.content_frame)
         list_container.pack(fill="both", expand=True)
 
-        headers_frame = ttk.Frame(list_container, padding=(5, 5))
-        headers_frame.pack(fill="x")
-        headers_frame.columnconfigure(0, weight=3) # Título
-        headers_frame.columnconfigure(1, weight=1) # Tempo Limite
-        headers_frame.columnconfigure(2, weight=1) # Autor
+        exercise_headers = ttk.Frame(list_container, padding=(5, 5))
+        exercise_headers.pack(fill="x")
+        exercise_headers.columnconfigure(0, weight=2) # Título
+        exercise_headers.columnconfigure(1, weight=1) # Autor
+        exercise_headers.columnconfigure(2, weight=0) # botão
 
-        default_text(headers_frame, "Título").grid(row=0, column=0, sticky="w")
-        default_text(headers_frame, "Tempo Limite").grid(row=0, column=1, sticky="w")
-        default_text(headers_frame, "Autor").grid(row=0, column=2, sticky="w")
+        default_text(exercise_headers, "Título").grid(row=0, column=0, sticky="w")
+        default_text(exercise_headers, "Autor").grid(row=0, column=1, sticky="w")
+        default_text(exercise_headers, "").grid(row=0, column=2, sticky="w")
 
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
@@ -152,7 +156,10 @@ class MainScreen(MFrame[AppProtocol]):
             
 
     def _access_exercise(self, exercise: ExerciseModel):
-        pass
+        exercise_screen = self.controller._frames.get(ScreenNames.EXERCISE.value)
+        if isinstance(exercise_screen, ExerciseScreen):
+            exercise_screen.set_exercise(exercise)
+            self.controller.change_to_screen(target_screen=ScreenNames.EXERCISE.value)
 
     def _go_to_profile(self):
         self.controller.change_to_screen(target_screen=ScreenNames.PROFILE.value)
@@ -174,7 +181,10 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     card.rowconfigure(3, weight=0)
 
     default_title(card, diff.capitalized_name, bold=True).grid(row=0, sticky="w")
-    default_text(card, diff.description, wraplength=120).grid(row=1, sticky="w")
+    description_txt = tk.Text(card, wrap="word", relief="flat", height=4)
+    description_txt.insert(1.0, diff.description)
+    description_txt.config(state="disabled")
+    description_txt.grid(row=1, sticky="w")
 
     ttk.Button(
         card, 
@@ -188,14 +198,12 @@ def exercise_row(parent: tk.Misc, exercise: ExerciseModel, author_name: str, acc
     row_frame.pack(fill="x")
     row_frame.columnconfigure(0, weight=3)
     row_frame.columnconfigure(1, weight=1)
-    row_frame.columnconfigure(2, weight=1)
-    row_frame.columnconfigure(3, weight=0)
+    row_frame.columnconfigure(2, weight=0)
 
     author_display = author_name
 
     default_text(row_frame, exercise.title).grid(row=0, column=0, sticky="w")
-    default_text(row_frame, f"{exercise.time_limit}s").grid(row=0, column=1, sticky="w")
-    default_text(row_frame, author_display).grid(row=0, column=2, sticky="w")
-    ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=3, sticky="e")
+    default_text(row_frame, author_display).grid(row=0, column=1, sticky="w")
+    ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=2, sticky="e")
 
     return row_frame

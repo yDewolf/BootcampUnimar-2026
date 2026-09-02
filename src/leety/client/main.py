@@ -5,6 +5,7 @@ from tkinter import messagebox
 from leety.client.app_protocol import AppProtocol, ClientConfig
 from leety.client.ui.abstract_screen import MFrame
 from leety.client.enums.screen_index import ScreenNames
+from leety.client.ui.screens.exercise_screen import ExerciseScreen
 from leety.client.ui.screens.login_screen import LoginScreen
 from leety.client.ui.screens.register_screen import RegisterScreen
 from leety.client.ui.screens.main_screen import MainScreen
@@ -65,6 +66,7 @@ class AppRoot(tk.Tk, AppProtocol):
 app = AppRoot({
     ScreenNames.MAIN: MainScreen,
     ScreenNames.REGISTER: RegisterScreen,
-    ScreenNames.LOGIN: LoginScreen
+    ScreenNames.LOGIN: LoginScreen,
+    ScreenNames.EXERCISE: ExerciseScreen
 }, "main")
 app.open_window()
