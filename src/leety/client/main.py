@@ -31,7 +31,6 @@ class AppRoot(tk.Tk, AppProtocol):
         self.change_to_screen(default_frame)
 
 
-
     def _setup_root(self):
         self.title(APP_NAME)
         self.geometry(f"{DEFAULT_SIZE[0]}x{DEFAULT_SIZE[1]}")

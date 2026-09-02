@@ -7,3 +7,4 @@ def default_title(parent: tk.Misc, text: str, bold: bool = False, **kwargs) -> t
 
 def default_text(parent: tk.Misc, text: str, **kwargs) -> ttk.Label:
     return ttk.Label(parent, text=text, font=("TkDefaultFont", 11), **kwargs)
+

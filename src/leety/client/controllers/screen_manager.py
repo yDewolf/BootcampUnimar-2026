@@ -27,7 +27,10 @@ class ScreenManager(ScreenManagerProtocol):
 
     def change_to_screen(self, target_screen: str):
         screen = self._frames.get(target_screen)
-        if screen: 
+        if screen:
+            if screen in self._frame_order:
+                self._frame_order.remove(screen)
+
             self._current_frame_idx = len(self._frame_order)
             self._frame_order.append(screen)
             screen.tkraise()
