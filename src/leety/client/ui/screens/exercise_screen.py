@@ -13,6 +13,8 @@ from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseModel
 from leety.common.database.models.user_model import UserModel
 
+# TODO: Adicionar opção para ver a lista de soluções e tentativas
+# TODO: Adicionar opções de admin (create, delete, update)
 class ExerciseScreen(MFrame[AppProtocol]):
     current_exercise: Optional[ExerciseModel] = None
     header_frame: ttk.Frame

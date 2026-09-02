@@ -9,6 +9,8 @@ from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseModel
 from leety.common.dto.attempt_result import AcceptedAttempt, AttemptResult, RuntimeErrorAttempt, SolutionStatus, WrongAnswerAttempt
 
+# TODO: adicionar botões para reenviar o código (lê o arquivo de novo e envia o novo conteúdo)
+# TODO: mostrar o tempo de execução para todos os resultados
 class SubmissionModal(CenterableModal, MFrame[AppProtocol]):
     root: ttk.Frame
     result_root: ttk.Frame
