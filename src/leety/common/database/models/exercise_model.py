@@ -9,7 +9,9 @@ class ExerciseDifficulty(IndexableFieldModel[str]):
     description: Field[str] = Field(default=None)
 
 # basicamente metadados
-class BaseExerciseModel(IndexableFieldModel[int]):
+# FIXME: esse idType: int aqui é gambiarra pra fazer o setup correto
+# do ExerciseModel
+class BaseExerciseModel[idType: int](IndexableFieldModel[int]):
     # TODO: a implementação do relacionamento vai ser manual mesmo e gg, 
     # porque vai dar muito trabalho implementar o sistema de relação agora
     # talvez se sobrar tempo
@@ -24,7 +26,7 @@ class BaseExerciseModel(IndexableFieldModel[int]):
     memory_limit: Field[int]
 
 # informações que são geradas após o exercício ser testado
-class ExerciseModel(BaseExerciseModel):
+class ExerciseModel(BaseExerciseModel[int]):
     _sample_gen_code: Field[Optional[str]] = Field(default=None)
 
     # FIXME: teoricamente essas variáveis de path não são necessárias

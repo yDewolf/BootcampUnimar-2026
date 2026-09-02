@@ -9,7 +9,7 @@ class CodeRunner:
         self.file_path = Path(file_path)
 
 
-    def run_python(self, timeout: float, args: list[Any]) -> str:
+    def run_python(self, timeout: float, args: list[Any]) -> tuple[str, str]:
         stringified_args = [
             str(arg) for arg in args
         ]
@@ -20,7 +20,4 @@ class CodeRunner:
             timeout=timeout
         )
 
-        if result.returncode == 0:
-            return result.stdout
-        
-        raise Exception(f"Python code failed: {result.stderr}")
+        return result.stdout, result.stderr

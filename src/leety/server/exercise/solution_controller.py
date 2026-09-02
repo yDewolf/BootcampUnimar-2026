@@ -87,7 +87,7 @@ class SolutionController:
 
         start_time = time.perf_counter()
         # TODO: melhorar typesafety desse output
-        output = runner.run_python(timeout, [json.dumps(samples)])
+        output, error = runner.run_python(timeout, [json.dumps(samples)])
         elapsed = time.perf_counter() - start_time
 
         if auto_cleanup:

@@ -191,7 +191,7 @@ class ExerciseController:
         runner = CodeRunner(job_dir / RUNNER_FILENAME)
 
         start_time = time.perf_counter()
-        output = runner.run_python(timeout, [code_path, "SampleGenerator", sample_amount])
+        output, error = runner.run_python(timeout, [code_path, "SampleGenerator", sample_amount])
         elapsed = time.perf_counter() - start_time
 
         if auto_cleanup:

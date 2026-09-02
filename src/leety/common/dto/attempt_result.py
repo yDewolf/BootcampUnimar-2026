@@ -4,7 +4,7 @@ from typing import Any, Optional
 from leety.common.internals.database.protocols.model.field_model import Field, FieldModel
 
 class SolutionStatus(Enum):
-    RUNTIME_ERROR = "RUNTME_ERROR"
+    RUNTIME_ERROR = "RUNTIME_ERROR"
     WRONG_ANSWER = "WRONG_ANSWER"
     ACCEPTED = "ACCEPTED"
 
