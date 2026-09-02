@@ -7,6 +7,7 @@ from leety.common.database.db_exceptions import EAdminOnlyAction
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseAttempt, ExerciseDifficulty, ExerciseModel
 from leety.common.database.models.user_model import UserModel
+from leety.common.dto.attempt_result import AttemptResult
 from leety.server.exercise.exercise_controller import ExerciseController
 from leety.server.exercise.solution_controller import SolutionController
 from leety.server.internal.router_protocol import RouterProtocol
@@ -172,7 +173,7 @@ class Server(RouterProtocol):
     # SolutionController:
     # faz upload do código de resolução de um exercício específico
     # retorna o resultado, se o código funciona ou não
-    def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, dict]:
+    def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]:
         assert user.id, "User must have an id to submit attempts"
         result = self.solution_controller.submit_attempt(user.id, exercise_id, attempt_code)
         self.database.save()

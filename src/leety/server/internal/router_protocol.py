@@ -2,6 +2,7 @@ from typing import Optional, Protocol
 
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseAttempt, ExerciseDifficulty, ExerciseModel
 from leety.common.database.models.user_model import UserModel
+from leety.common.dto.attempt_result import AttemptResult
 
 # TODO: implementar esse router dps
 # TODO: talvez fazer um sistema de autenticação simples com token JWT
@@ -37,7 +38,7 @@ class RouterProtocol(Protocol):
 
     # faz upload do código de resolução de um exercício específico
     # retorna o resultado, se o código funciona ou não
-    def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, dict]: raise NotImplementedError()
+    def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]: raise NotImplementedError()
     # retorna todos os códigos que o usuário fez upload em um exercício
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()
     def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()

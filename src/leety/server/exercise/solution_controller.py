@@ -4,10 +4,10 @@ import time
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import ExerciseAttempt, ExerciseModel
 from leety.common.database.models.user_model import UserModel
+from leety.common.dto.attempt_result import AttemptResult, RuntimeErrorAttempt, SolutionStatus, WrongAnswerAttempt
 from leety.common.utils.code_runner import CodeRunner
 from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.exercise_controller import ExerciseController
-from leety.server.exercise.template_utils import SolutionStatus
 from leety.server.sandbox.sandbox_controller import RUNNER_FILENAME, SOLUTION_FILENAME, SandboxController
 
 class SolutionController:
@@ -22,7 +22,7 @@ class SolutionController:
         self.exercise_controller = exercise_controller
 
     # Attempt CRUD:
-    def submit_attempt(self, user_id: int, exercise_id: int, attempt_code: str) -> tuple[bool, dict]:
+    def submit_attempt(self, user_id: int, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]:
         user_data, exercise_data = self._ensure_user_and_exercise(user_id, exercise_id)
         samples = self.exercise_controller.load_samples(exercise_id)
         if not samples:
@@ -32,12 +32,12 @@ class SolutionController:
         correct_results: int = 0
         if is_valid:
             correct_results = len(samples)
-        elif output["status"] == SolutionStatus.RUNTIME_ERROR.value or output["status"] == SolutionStatus.WRONG_ANSWER.value:
-            correct_results = output["test_case"] - 1
+        elif output.status == SolutionStatus.RUNTIME_ERROR.value or output.status == SolutionStatus.WRONG_ANSWER.value:
+            correct_results = (output.test_case or 1) - 1
         
         attempt_data = ExerciseAttempt(
             id=None, author_id=user_id, exercise_id=exercise_id, valid=is_valid,
-            sample_amount=len(samples), solve_time=output["elapsed"],
+            sample_amount=len(samples), solve_time=output.elapsed,
             correct_results=correct_results
         )
 
@@ -94,23 +94,30 @@ class SolutionController:
             self.sandbox_controller.cleanup_job(job_dir)
         return (output, elapsed)
 
-    def _validate_attempt(self, exercise: ExerciseModel, code: str, samples: list[TestCase]) -> tuple[bool, dict]:
+    def _validate_attempt(self, exercise: ExerciseModel, code: str, samples: list[TestCase]) -> tuple[bool, AttemptResult]:
         assert exercise.id, "Exercise wasn't indexed properly"
         
         output, elapsed = self._run_solution(code, samples, timeout=exercise.time_limit, memory_limit=exercise.memory_limit)
-        parsed_output = json.loads(output)
-        parsed_output["elapsed"] = elapsed
-        match parsed_output["status"]:
-            case SolutionStatus.ACCEPTED.value:
-                return (True, parsed_output)
-            
-            case SolutionStatus.RUNTIME_ERROR.value:
-                return (False, parsed_output)
+        dict_output: dict = json.loads(output)
 
-            case SolutionStatus.WRONG_ANSWER.value:
-                return (False, parsed_output)
+        output_model = AttemptResult(
+            status=SolutionStatus(dict_output["status"]),
+            test_case=dict_output.get("test_case"),
+            elapsed=elapsed
+        )
+        match output_model.status:
+            case SolutionStatus.ACCEPTED:
+                return (True, AttemptResult.from_dict(output_model._data))
+            
+            case SolutionStatus.RUNTIME_ERROR:
+                return (False, RuntimeErrorAttempt(error=dict_output["error"], **output_model._data))
+
+            case SolutionStatus.WRONG_ANSWER:
+                return (False, WrongAnswerAttempt(
+                    input=dict_output["input"], expected=dict_output["expected"], actual=dict_output["actual"], **output_model._data
+                ))
             case _:
-                return (False, parsed_output)
+                return (False, dict_output)
 
     # Paths:
 

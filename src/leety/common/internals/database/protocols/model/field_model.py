@@ -135,6 +135,12 @@ class FieldModel:
         if self._auto_validate:
             self.validate()
 
+    @classmethod
+    def from_dict(cls, data_dict: dict):
+        model = cls(**data_dict)
+        return model
+
+
     def validate(self):
         for field_name in self.header_keys():
             field_obj: Field = getattr(self.__class__, field_name)

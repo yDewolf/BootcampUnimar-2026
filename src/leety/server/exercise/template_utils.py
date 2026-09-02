@@ -3,11 +3,6 @@ from enum import Enum
 
 from leety.common.utils.str_utils import split_in_lines
 
-class SolutionStatus(Enum):
-    RUNTIME_ERROR = "RUNTME_ERROR"
-    WRONG_ANSWER = "WRONG_ANSWER"
-    ACCEPTED = "ACCEPTED"
-
 class TemplateUtils:
     @staticmethod
     def extract_solution_annotations(generator_code: str, target_method: str = "solver") -> tuple[dict[str, str], str]:

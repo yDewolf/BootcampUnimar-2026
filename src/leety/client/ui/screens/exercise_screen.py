@@ -1,4 +1,5 @@
 from pathlib import Path
+import threading
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -7,8 +8,10 @@ from typing import Optional
 
 from leety.client.app_protocol import AppProtocol
 from leety.client.ui.abstract_screen import MFrame
+from leety.client.ui.components.submission_modal import SubmissionModal
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseModel
+from leety.common.database.models.user_model import UserModel
 
 class ExerciseScreen(MFrame[AppProtocol]):
     current_exercise: Optional[ExerciseModel] = None
@@ -177,18 +180,34 @@ class ExerciseScreen(MFrame[AppProtocol]):
         try:
             user = self.controller.logged_user
             assert user
-            assert self.current_exercise.id, "Exercise must be indexed"
 
             path = Path(file_path)
             file_contents = path.read_text(encoding="utf-8")
 
-            is_valid, output = self.controller.server.submit_attempt(
-                user, self.current_exercise.id, file_contents
-            )
-            # TODO: abrir uma subtela ou algo do tipo para mostrar o resultado da tentativa
+            modal = SubmissionModal(self, self.controller, self.current_exercise, file_contents)
+            thread = threading.Thread(target=lambda: self.process_submission(user, modal, file_contents), daemon=True)
+            thread.start()
+            self.wait_window(modal)
+
+            # FIXME
+            thread.join(timeout=5)
 
         except Exception as e:
             messagebox.showerror(
                 "Erro de Leitura",
                 f"Não foi possível ler o arquivo selecionado: \n{str(e)}"
             )
+
+    def process_submission(self, user: UserModel, modal: SubmissionModal, file_contents: str):
+        assert user
+        assert self.current_exercise
+        assert self.current_exercise.id, "Exercise must be indexed"
+
+        try:
+            is_valid, output = self.controller.server.submit_attempt(
+                user, self.current_exercise.id, file_contents
+            )
+            modal.after(0, lambda: modal.show_results(is_valid, output))
+        except Exception as e:
+            modal.after(0, lambda: messagebox.showerror("Erro", f"Erro no servidor: {e}"))
+            modal.after(0, modal.destroy)
