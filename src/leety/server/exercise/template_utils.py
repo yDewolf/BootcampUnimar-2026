@@ -36,7 +36,7 @@ class TemplateUtils:
         raise ValueError(f"Couldn't find {target_method}")
 
     @staticmethod
-    def create_solution_template(solve_annotations: tuple[dict[str, str], str], template_header: str = "", function_comments: str = "") -> str:
+    def create_solution_template(solve_annotations: tuple[dict[str, str], str], authors: list[str] = [], template_header: str = "", function_comments: str = "") -> str:
         args, return_type = solve_annotations
         arg_def_str: list[str] = [
             f"{arg}: {type_hint}" for arg, type_hint in args.items()
@@ -46,6 +46,7 @@ class TemplateUtils:
 f"""from typing import Any
 
 {template_header}
+# Autores: {",".join(authors)}
 
 class Solution:
     def solve(self, {", ".join(arg_def_str)}) -> {return_type}:

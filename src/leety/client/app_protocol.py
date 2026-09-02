@@ -9,12 +9,16 @@ from leety.common.database.models.user_model import UserModel
 from leety.server.server import Server
 
 class AppProtocol(ScreenManager):
+    _default_solution_path: Path
     _cfg_path: Path
 
     _logged_user: Optional[UserModel] = None
     _cfg: ClientConfig
     _connected_server: Server
-    
+
+    @property
+    def solutions_path(self) -> Path: return self._default_solution_path
+
     @property
     def server(self) -> Server: return self._connected_server
 

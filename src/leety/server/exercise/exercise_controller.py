@@ -238,9 +238,16 @@ class ExerciseController:
             exercise_data.title, str(exercise_data.id), 
             exercise_data.context, diff.capitalized_name if diff else exercise_data.diff_id
         )
+
+        contributors = []
+        for id in (exercise_data.contributors or [] + [exercise_data.author_id] if exercise_data.author_id else []):
+            user = self.user_controller.get_user(id)
+            contributors.append(user.username if user else id)
+
         solution_template = TemplateUtils.create_solution_template(
             annotations, 
-            template_header=template_header, 
+            template_header=template_header,
+            authors=contributors,
             function_comments=TemplateUtils.create_function_comments(comment="Implemente essa função para solucionar o problema descrito.")
         )
 

@@ -115,12 +115,48 @@ class ExerciseScreen(MFrame[AppProtocol]):
 
         ttk.Separator(self.content_container, orient="horizontal").pack(fill="x", pady=5)
 
-        self._submit_button = ttk.Button(self.content_container, text="Enviar Solução", command=self._submit_solution)
-        self._submit_button.pack(anchor="e")
+        exercise_actions = ttk.Frame(self.content_container)
+        exercise_actions.pack(fill="x", pady=(10, 0))
+        exercise_actions.rowconfigure(0)
+        exercise_actions.columnconfigure(0, weight=0)
+        exercise_actions.columnconfigure(1, weight=0)
+
+        template_buton = ttk.Button(exercise_actions, text="Criar solução", command=self._create_solution_template)
+        template_buton.grid(sticky="w", row=0, column=0)
+        self._submit_button = ttk.Button(exercise_actions, text="Enviar solução", command=self._submit_solution)
+        self._submit_button.grid(sticky="e", row=0, column=1)
 
 
     def _create_solution_template(self):
-        pass
+        if not self.current_exercise:
+            messagebox.showwarning("Aviso", "Nenhum exercício foi selecionado")
+            return
+
+        file_path = filedialog.asksaveasfilename(
+            title="Selecione um local para o template",
+            filetypes=[(".py", "*.py")],
+            defaultextension=".py",
+            initialdir=str(self.controller.solutions_path),
+            initialfile=f"Solution_{self.current_exercise.diff_id}-{self.current_exercise.id}"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            assert self.current_exercise.id, "Exercise must be indexed"
+            exercise_template = self.controller.server.get_exercise_template(self.current_exercise.id)
+            if not exercise_template:
+                raise Exception(f"Failed to fetch solution template for exercise #{self.current_exercise.id}")
+
+            path = Path(file_path)
+            path.write_text(exercise_template, encoding="utf-8")
+
+        except Exception as e:
+            messagebox.showerror(
+                "Erro de Leitura",
+                f"Não foi possível ler o arquivo selecionado: \n{str(e)}"
+            )
 
     def _submit_solution(self):
         if not self.controller.logged_user:

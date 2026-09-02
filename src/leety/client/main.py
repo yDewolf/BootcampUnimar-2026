@@ -14,11 +14,14 @@ from leety.server.server import Server
 # nome provisório btw
 APP_NAME = "Leety"
 DEFAULT_SIZE = (640, 480)
+DEFAULT_SOLUTION_PATH = Path(__file__).resolve().parent.parent.parent.parent / "solutions"
 
 INTERNAL_SERVER = Server()
 DEFAULT_CFG_PATH = Path(__file__).resolve().parent.parent.parent.parent / "client_cfg.json" # ProjectFolder/client_cfg.json
 class AppRoot(tk.Tk, AppProtocol):
     def __init__(self, frames: dict[ScreenNames, type[MFrame]], default_frame: str, cfg_path: Path = DEFAULT_CFG_PATH):
+        self._default_solution_path = DEFAULT_SOLUTION_PATH
+        self._default_solution_path.mkdir(exist_ok=True)
         self._connected_server = INTERNAL_SERVER
         self._cfg = ClientConfig()
         self._cfg_path = cfg_path
