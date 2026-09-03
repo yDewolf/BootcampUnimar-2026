@@ -1,4 +1,5 @@
-from tkinter import messagebox, scrolledtext, ttk
+from pathlib import Path
+from tkinter import filedialog, messagebox, scrolledtext, ttk
 import tkinter as tk
 from typing import Optional
 
@@ -19,6 +20,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
     memory_limit_var: tk.IntVar
 
     context_txt: tk.Text
+    sample_gen_path: Optional[Path] = None
 
     def is_editing(self):
         return self.exercise_id != None
@@ -97,15 +99,23 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         save_button = ttk.Button(buttons_frame, text="Salvar", command=self._handle_save_action)
         save_button.grid(row=0, column=0, sticky="w")
 
+        if not self.is_editing():
+            ttk.Button(buttons_frame, text="Selecionar Arquivo de Exercício", command=self._select_sample_gen_path).grid(row=0, column=1, sticky="w")
+        else:
+            ttk.Button(buttons_frame, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
+
     def _handle_save_action(self):
         model = self._make_exercise_model()
         if not model:
             return
-        
-        if self.is_editing():
-            successful = self._edit_exercise(model)
-        else:
-            successful = self._save_model(model)
+
+        try:
+            if self.is_editing():
+                successful = self._edit_exercise(model)
+            else:
+                successful = self._save_model(model)
+        except Exception as e:
+            messagebox.showerror("Falha", f"Não foi possível salvar o exercício: {e}")
 
         if successful:
             messagebox.showinfo("Sucesso", f"O exercício foi {"criado" if not self.is_editing() else "editado"} com sucesso!")
@@ -116,8 +126,11 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             return False
 
         assert self.controller.logged_user
-        # TODO: adicionar o sample_gen_code coisas
-        exercise = ExerciseModel.from_dict(model.get_data(raw=True))
+        if not self.sample_gen_path:
+            raise Exception("Nenhum arquivo de exercício foi selecionado")
+        
+        file_contents = self._load_sample_gen()
+        exercise = ExerciseModel(_sample_gen_code=file_contents, **model.get_data(raw=True))
         successful = self.controller.server.create_exercise(self.controller.logged_user, exercise)
         return successful
 
@@ -144,3 +157,46 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             memory_limit=self.memory_limit_var.get()
         )
         return new_model
+
+    def _upload_new_sample_gen(self):
+        try:
+            if not self.controller.is_admin():
+                raise Exception("O usuário deve ser um admin para completar a ação")
+
+            if not self.controller.logged_user:
+                raise Exception("Você deve estar logado para realizar a ação")
+
+            if self.exercise_id is None:
+                raise Exception("Nenhum exercício está sendo editado")
+            
+            self._select_sample_gen_path()
+            if not self.sample_gen_path:
+                return
+            
+            file_contents = self._load_sample_gen()
+            if not file_contents:
+                raise Exception("Não foi possível ler os conteúdos do arquivo")
+
+            self.controller.server.upload_sample_gen_code(self.controller.logged_user, self.exercise_id, file_contents)
+
+        except Exception as e:
+            messagebox.showerror("Algo deu errado", f"Não foi possível atualizar o código do exercício: {e}")
+
+    def _select_sample_gen_path(self):
+        file_path = filedialog.askopenfilename(
+            title="Selecione o arquivo do exercício",
+            filetypes=[(".py", "*.py")]
+        )
+        if not file_path:
+            return
+
+        self.sample_gen_path = Path(file_path)
+
+    def _load_sample_gen(self) -> Optional[str]:
+        if not self.sample_gen_path:
+            return None
+
+        if not self.sample_gen_path.exists():
+            raise Exception("O arquivo não existe mais")
+
+        return self.sample_gen_path.read_text(encoding="utf-8")
