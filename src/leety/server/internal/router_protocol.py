@@ -42,4 +42,4 @@ class RouterProtocol(Protocol):
     def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]: raise NotImplementedError()
     # retorna todos os códigos que o usuário fez upload em um exercício
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()
-    def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]: raise NotImplementedError()
+    def get_exercise_attempts(self, exercise_id: int, valid_attempts_only: bool) -> list[ExerciseAttempt]: raise NotImplementedError()

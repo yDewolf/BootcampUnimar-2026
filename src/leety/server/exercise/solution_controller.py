@@ -72,7 +72,13 @@ class SolutionController:
             ExerciseAttempt.exercise_id: exercise.id
         }) or []
 
-    def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]:
+    def get_exercise_attempts(self, exercise_id: int, valid_attempts_only: bool = False) -> list[ExerciseAttempt]:
+        if valid_attempts_only:
+            return self.database.ex_attempts.match_searchable_field({
+                ExerciseAttempt.exercise_id: exercise_id,
+                ExerciseAttempt.valid: True
+            }) or []
+        
         return self.database.ex_attempts.match_searchable_field({
             ExerciseAttempt.exercise_id: exercise_id
         }) or []

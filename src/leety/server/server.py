@@ -186,8 +186,8 @@ class Server(RouterProtocol):
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]: 
         return self.solution_controller.get_user_attempts(user_id, exercise_id)
 
-    def get_exercise_attempts(self, exercise_id: int) -> list[ExerciseAttempt]: 
-        return self.solution_controller.get_exercise_attempts(exercise_id)
+    def get_exercise_attempts(self, exercise_id: int, valid_attempts_only: bool) -> list[ExerciseAttempt]: 
+        return self.solution_controller.get_exercise_attempts(exercise_id, valid_attempts_only)
 
 
     def _validate_admin_only_act(self, admin: UserModel, message: str):

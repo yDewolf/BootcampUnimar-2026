@@ -5,6 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
+from tkinter import scrolledtext
 from typing import Optional
 
 from leety.client.app_protocol import AppProtocol
@@ -91,9 +92,12 @@ class ExerciseScreen(MFrame[AppProtocol]):
             return
 
         exercise = self.current_exercise
+        assert exercise.id
         
         self._render_exercise_header(exercise)
-        title_label = default_title(self.content_container, text=exercise.title, bold=True)
+        exercise_header = ttk.Frame(self.content_container)
+        exercise_header.pack(anchor="w", pady=(0, 10))
+        title_label = default_title(exercise_header, text=exercise.title, bold=True)
         title_label.pack(anchor="w")
 
         author_names: list[str] = []
@@ -104,9 +108,21 @@ class ExerciseScreen(MFrame[AppProtocol]):
         if author_names == []: author_names = ["Desconhecido"]
 
         author_label = default_text(
-            self.content_container, f"Autores: {",".join(author_names)}", fontsize=9
+            exercise_header, f"Autores: {",".join(author_names)}", fontsize=9
         )
-        author_label.pack(anchor="w", pady=(0, 10))
+        author_label.pack(anchor="w")
+
+        solutions = self.controller.server.get_exercise_attempts(exercise.id, True)
+        counted_users: list[int] = []
+        for sol in solutions:
+            if not sol.valid: continue
+            if sol.author_id in counted_users: continue
+            counted_users.append(sol.author_id)
+
+        solved_by_label = default_text(
+            exercise_header, f"Resolvido por {len(counted_users)} usuário{"s" if len(counted_users) > 1 else ""}", fontsize=9
+        )
+        solved_by_label.pack(anchor="w")
 
         constraint_title = default_text(self.content_container, text="Restrições do Programa:")
         constraint_title.pack(anchor="w")
@@ -118,8 +134,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
         context_title = default_text(self.content_container, text="Contextualização:")
         context_title.pack(anchor="w", pady=(10, 5))
 
-        # FIXME
-        context_body = tk.Text(
+        context_body = scrolledtext.ScrolledText(
             self.content_container, height=8, wrap="word", relief="flat",
         )
         context_body.insert(1.0, exercise.context)

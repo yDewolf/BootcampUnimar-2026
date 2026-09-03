@@ -34,9 +34,6 @@ class MainScreen(MFrame[AppProtocol]):
         separator = ttk.Separator(self, orient="horizontal")
         separator.grid(row=1, column=0, sticky="ew", pady=(5, 0))
 
-        content_frame = ttk.Frame(self, padding=20)
-        content_frame.grid(row=2, column=0, sticky="nsew")
-        
         self.content_frame = ttk.Frame(self, padding=20)
         self.content_frame.grid(row=2, column=0, sticky="nsew")
 
@@ -157,11 +154,11 @@ class MainScreen(MFrame[AppProtocol]):
 
         for exercise in exercises:
             if not exercise.is_valid and not self.controller.is_admin(): continue
-
             author_name: str = "Desconhecido"
             if exercise.author_id:
                 author = self.controller.server.get_user_data(exercise.author_id)
                 author_name = author.username if author else author_name
+            
             exercise_row(self.controller, list_container, exercise, author_name, self._access_exercise)
             ttk.Separator(list_container, orient="horizontal").pack(fill="x")
             
@@ -220,6 +217,7 @@ def exercise_row(controller: AppProtocol, parent: tk.Misc, exercise: ExerciseMod
         assert user.id
         assert exercise.id
         is_done = controller.server.is_exercise_done(user.id, exercise.id)
+    
     # confie em mim, eu estou usando windows + . para adicionar estes emojis !!
     default_text(row_frame, "☑️" if is_done else "✖️").grid(row=0, column=0, sticky="w")
     default_text(row_frame, exercise.title).grid(row=0, column=1, sticky="w")
