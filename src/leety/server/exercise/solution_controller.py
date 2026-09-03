@@ -36,8 +36,9 @@ class SolutionController:
             correct_results = (output.test_case or 1) - 1
         
         attempt_data = ExerciseAttempt(
-            id=None, author_id=user_id, exercise_id=exercise_id, valid=is_valid,
-            sample_amount=len(samples), solve_time=output.elapsed,
+            id=None, author_id=user_id, exercise_id=exercise_id, 
+            valid=is_valid, sample_amount=len(samples), 
+            solve_time=output.elapsed, attempt_result=output,
             correct_results=correct_results
         )
 
@@ -55,6 +56,14 @@ class SolutionController:
 
         attempt_file = self.attempt_filename(attempt.author_id, attempt.exercise_id, attempt.id)
         attempt_file.write_text(code, encoding="utf-8")
+
+    def is_exercise_done(self, user_id: int, exercise_id: int) -> bool:
+        user, exercise = self._ensure_user_and_exercise(user_id, exercise_id)
+        return len(self.database.ex_attempts.match_searchable_field({
+            ExerciseAttempt.author_id: user.id,
+            ExerciseAttempt.exercise_id: exercise.id,
+            ExerciseAttempt.valid: True
+        }) or []) > 0
 
     def get_user_attempts(self, user_id: int, exercise_id: int) -> list[ExerciseAttempt]:
         user, exercise = self._ensure_user_and_exercise(user_id, exercise_id)

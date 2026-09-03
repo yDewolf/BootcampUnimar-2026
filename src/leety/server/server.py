@@ -171,6 +171,9 @@ class Server(RouterProtocol):
 
 
     # SolutionController:
+    def is_exercise_done(self, user_id: int, exercise_id: int) -> bool: 
+        return self.solution_controller.is_exercise_done(user_id, exercise_id)        
+
     # faz upload do código de resolução de um exercício específico
     # retorna o resultado, se o código funciona ou não
     def submit_attempt(self, user: UserModel, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]:

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import threading
 import tkinter as tk
@@ -8,6 +9,7 @@ from typing import Optional
 
 from leety.client.app_protocol import AppProtocol
 from leety.client.ui.abstract_screen import MFrame
+from leety.client.ui.components.attempts_modal import AttemptsHistoryModal
 from leety.client.ui.components.submission_modal import SubmissionModal
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseModel
@@ -142,7 +144,15 @@ class ExerciseScreen(MFrame[AppProtocol]):
         self._see_attempts_button.grid(sticky="e", row=0, column=2)
 
     def _check_attempts(self):
-        pass
+        if not self.controller.logged_user:
+            messagebox.showwarning("Aviso", "Você precisa estar logado.")
+            return
+
+        if not self.current_exercise:
+            return
+
+        modal = AttemptsHistoryModal(self, self.controller, self.current_exercise)
+        self.wait_window(modal)
 
     def _create_solution_template(self):
         if not self.current_exercise:
@@ -154,7 +164,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
             filetypes=[(".py", "*.py")],
             defaultextension=".py",
             initialdir=str(self.controller.solutions_path),
-            initialfile=f"Solution_{self.current_exercise.diff_id}-{self.current_exercise.id}"
+            initialfile=f"solution_{self.current_exercise.diff_id}-{self.current_exercise.id}"
         )
 
         if not file_path:
@@ -168,6 +178,11 @@ class ExerciseScreen(MFrame[AppProtocol]):
 
             path = Path(file_path)
             path.write_text(exercise_template, encoding="utf-8")
+
+            auto_open = messagebox.askyesno("Abrir arquivo?", "Deseja abrir o arquivo no seu editor de texto padrão?")
+            if auto_open:
+                # FIXME: aqui estou ignorando sistemas operacionais que não são windows porque sim
+                os.startfile(file_path)
 
         except Exception as e:
             messagebox.showerror(

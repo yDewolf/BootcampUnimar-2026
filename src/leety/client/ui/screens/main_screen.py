@@ -143,13 +143,15 @@ class MainScreen(MFrame[AppProtocol]):
 
         exercise_headers = ttk.Frame(list_container, padding=(5, 5))
         exercise_headers.pack(fill="x")
-        exercise_headers.columnconfigure(0, weight=2) # Título
-        exercise_headers.columnconfigure(1, weight=1) # Autor
-        exercise_headers.columnconfigure(2, weight=0) # botão
+        exercise_headers.columnconfigure(0, weight=0) # is_done
+        exercise_headers.columnconfigure(1, weight=2) # Título
+        exercise_headers.columnconfigure(2, weight=1) # Autor
+        exercise_headers.columnconfigure(3, weight=0) # botões
 
-        default_text(exercise_headers, "Título").grid(row=0, column=0, sticky="w")
-        default_text(exercise_headers, "Autor").grid(row=0, column=1, sticky="w")
-        default_text(exercise_headers, "").grid(row=0, column=2, sticky="w")
+        default_text(exercise_headers, "").grid(row=0, column=0, sticky="w")
+        default_text(exercise_headers, "Título").grid(row=0, column=1, sticky="w")
+        default_text(exercise_headers, "Autor").grid(row=0, column=2, sticky="w")
+        default_text(exercise_headers, "").grid(row=0, column=3, sticky="w")
 
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
@@ -205,18 +207,30 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
 def exercise_row(controller: AppProtocol, parent: tk.Misc, exercise: ExerciseModel, author_name: str, access_exercise: Callable[[ExerciseModel], None]) -> ttk.Frame:
     row_frame = ttk.Frame(parent, padding=(5, 8))
     row_frame.pack(fill="x")
-    row_frame.columnconfigure(0, weight=3)
-    row_frame.columnconfigure(1, weight=1)
-    row_frame.columnconfigure(2, weight=0)
+    row_frame.columnconfigure(0, weight=0)
+    row_frame.columnconfigure(1, weight=3)
+    row_frame.columnconfigure(2, weight=1)
+    row_frame.columnconfigure(3, weight=0)
 
     author_display = author_name
 
-    default_text(row_frame, exercise.title).grid(row=0, column=0, sticky="w")
-    default_text(row_frame, author_display).grid(row=0, column=1, sticky="w")
-    ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=2, sticky="e")
+    user = controller.logged_user
+    is_done: bool = False
+    if user:
+        assert user.id
+        assert exercise.id
+        is_done = controller.server.is_exercise_done(user.id, exercise.id)
+    # confie em mim, eu estou usando windows + . para adicionar estes emojis !!
+    default_text(row_frame, "☑️" if is_done else "✖️").grid(row=0, column=0, sticky="w")
+    default_text(row_frame, exercise.title).grid(row=0, column=1, sticky="w")
+    default_text(row_frame, author_display).grid(row=0, column=2, sticky="w")
+
+    button_frame = ttk.Frame(row_frame)
+    button_frame.grid(row=0, column=3, sticky="e")
+    ttk.Button(button_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).pack(side="right")
 
     if controller.is_admin():
-        row_frame.columnconfigure(3, weight=0)
-        ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=2, sticky="e")
+        # TODO:
+        ttk.Button(button_frame, text="Editar").pack(side="right")
 
     return row_frame

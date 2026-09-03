@@ -67,7 +67,8 @@ class _Database:
             if isinstance(table, IndexableTable):
                 table._last_inserted_int_id = 0
                 table._table_index.clear()
-                table._searchable_index.clear()
+                for key in table._searchable_index:
+                    table._searchable_index[key].clear()
 
             for key in table._unique_columns:
                 table._unique_columns[key].clear()

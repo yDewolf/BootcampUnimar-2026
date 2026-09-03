@@ -1,4 +1,6 @@
 # Estarei tentando não usar pydantic então vou tentar implementar algumas coisas que são bem úteis da biblioteca manualmente
+from enum import Enum
+import json
 from typing import Any, Optional, Type, dataclass_transform, get_args, get_origin, get_type_hints, overload
 from leety.common.internals.database.protocols.model.field_exceptions import FieldMissingValue
 from leety.common.internals.database.protocols.type_protocols import TableProtocol
@@ -137,7 +139,8 @@ class FieldModel:
 
     @classmethod
     def from_dict(cls, data_dict: dict):
-        model = cls(**data_dict)
+        model = cls(_auto_validate=False)
+        model._set_from_dict(data_dict)
         return model
 
 
@@ -152,8 +155,13 @@ class FieldModel:
     def _set_from_dict(self, data_dict: dict[str, Any]):
         for key in self.header_keys(raw=True):
             if not key in data_dict: continue
-
             val = data_dict.get(key)
+
+            field = getattr(self.__class__, key)
+            if isinstance(field, Field):
+                if isinstance(field._type_hint, type) and issubclass(field._type_hint, Enum):
+                    val = field._type_hint(val)
+            
             setattr(self, key, val)
         
     def get_data(self, raw: bool = False) -> dict[str, Any]:
@@ -217,4 +225,14 @@ class FieldModel:
         
 
     def __str__(self):
-        return self.to_csv_str(include_header=True)
+        # FIXME:
+        data_copy = dict(self._data)
+        for key in self.header_keys(raw=True):
+            if not key in self._data: continue
+            field = getattr(self.__class__, key)
+            if isinstance(field, Field):
+                value = self._data[key]
+                if isinstance(value, Enum):
+                    data_copy[key] = value.value
+
+        return json.dumps(data_copy)

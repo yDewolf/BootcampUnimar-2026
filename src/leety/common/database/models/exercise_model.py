@@ -1,5 +1,6 @@
 from typing import Optional
 
+from leety.common.dto.attempt_result import AttemptResult
 from leety.common.internals.database.protocols.model.default_models import IndexableFieldModel, SearchableField
 from leety.common.internals.database.protocols.model.field_model import Field
 
@@ -48,6 +49,7 @@ class ExerciseAttempt(IndexableFieldModel[int]):
     exercise_id: SearchableField[int]
 
     valid: SearchableField[bool]
+    attempt_result: Field[Optional[AttemptResult]]
 
     solve_time: Field[Optional[float]] = Field(default=None)
     sample_amount: Field[Optional[int]] = Field(default=None)

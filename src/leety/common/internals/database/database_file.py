@@ -1,11 +1,12 @@
 import csv
+from enum import Enum
 import json
 from pathlib import Path
 from types import NoneType
 from typing import Any, get_args
 
 from leety.common.internals.database.abstract.abs_csvbase import _Database
-from leety.common.internals.database.protocols.model.field_model import Field
+from leety.common.internals.database.protocols.model.field_model import Field, FieldModel
 
 
 class DBFileManager:
@@ -105,6 +106,10 @@ class DBFileManager:
                 casted_data[field_name] = float(value)
             elif target_type is bool:
                 casted_data[field_name] = value.lower() in ("true", "1", "yes")
+            elif issubclass(target_type, Enum):
+                casted_data[field_name] = target_type(value)
+            elif issubclass(target_type, FieldModel):
+                casted_data[field_name] = target_type.from_dict(json.loads(value))
             else:
                 casted_data[field_name] = str(value)
 
