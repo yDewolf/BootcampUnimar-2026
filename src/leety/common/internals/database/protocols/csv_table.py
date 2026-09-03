@@ -254,10 +254,10 @@ class IndexableTable[model: IndexableFieldModel](Table[model]):
             value = getattr(row, field_name)
             if value is None: continue
             if value in self._searchable_index[field_name]:
-                self._searchable_index[field_name][str(value)].append(row)
+                self._searchable_index[field_name][value].append(row)
                 continue
 
-            self._searchable_index[field_name][str(value)] = [row]
+            self._searchable_index[field_name][value] = [row]
 
     def _discard_searchables(self, row: model):
         for field_name in self.model_cls().searchable_fields():

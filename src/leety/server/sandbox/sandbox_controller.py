@@ -82,10 +82,10 @@ class SandboxController:
     def cleanup_job(self, job_dir: Path):
         if job_dir.resolve().is_relative_to(self.sandbox_path.resolve()):
             FileUtils.cleanup_folder(job_dir)
-
+    
     def cleanup_tmp(self):
-        FileUtils.cleanup_folder(self.solutions_path)
-        FileUtils.cleanup_folder(self.generators_path)
+        FileUtils.cleanup_folder(self.solutions_path, remove_folder_too=False)
+        FileUtils.cleanup_folder(self.generators_path, remove_folder_too=False)
 
     @staticmethod
     def _prepare_job_folder(root_path: Path, code: str, code_filename: str) -> Path:

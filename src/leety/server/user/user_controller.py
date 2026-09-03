@@ -13,7 +13,7 @@ class UserController:
 
 
     def register_user(self, user_data: UserModel):
-        if user_data.is_admin:
+        if self.is_admin(user_data.id):
             # simplesmente porque eu quis assim
             raise Exception("Admins must be inserted directly to the database")
 
@@ -41,7 +41,7 @@ class UserController:
 
         admin_data = self.get_user(admin_id)
         if not admin_data: return False
-        if not admin_data.is_admin: return False
+        if not self.is_admin(admin_data.id): return False
 
         if admin_data.password != admin_password: return False
         self.database.users.remove_row_id(user_id)
