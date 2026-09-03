@@ -111,7 +111,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
         for id in (exercise.contributors or [exercise.author_id]):
             if not id: continue
             author = self.controller.server.get_user_data(id)
-            author_names.append(author.username if author else "Desconhecido")
+            author_names.append(author.username if author else f"Desconhecido #{id}")
         if author_names == []: author_names = ["Desconhecido"]
 
         author_label = default_text(

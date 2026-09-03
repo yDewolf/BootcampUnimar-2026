@@ -1,10 +1,11 @@
 from typing import Any
 
 # Exercício - test #1
-# Dificuldade: none
+# Dificuldade: Fácil
 
 # Contextualização:
 # Dois valores inteiros serão passados, o resultado deve ser a soma deles.
+# Autores: 
 
 class Solution:
     def solve(self, n0: int, n1: int) -> Any:

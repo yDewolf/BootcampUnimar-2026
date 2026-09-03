@@ -93,8 +93,11 @@ class ExerciseController:
         exercise = self.database.exercises.get_by_id(exercise_id)
         if not exercise:
             raise Exception(f"Couldn't find Exercise with id: {exercise_id}")
-        
-        assert exercise.contributors != None
+
+        if not exercise.contributors:
+            exercise.contributors = []
+            # FIXME
+            # assert exercise.contributors != None
         if not author_id in exercise.contributors:
             exercise.contributors.append(author_id)
         
