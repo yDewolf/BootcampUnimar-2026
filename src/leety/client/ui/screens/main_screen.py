@@ -79,6 +79,8 @@ class MainScreen(MFrame[AppProtocol]):
         self.refresh_auth_button()
         if not isinstance(self.controller._previous_frame, ExerciseScreen):
             self.show_difficulties_grid()
+        elif self.current_diff:
+            self.show_exercise_list(self.current_diff)
 
         super().tkraise(*args, **kwargs)
 
@@ -176,11 +178,13 @@ class MainScreen(MFrame[AppProtocol]):
         
         modal = ExerciseCreateModal(self, self.controller, exercise)
         self.wait_window(modal)
+        if self.current_diff:
+            self.show_exercise_list(self.current_diff)
 
     def _create_new_exercise(self):
         modal = ExerciseCreateModal(self, self.controller, exercise=None, default_diff=self.current_diff.id if self.current_diff else None)
         self.wait_window(modal)
-        
+
         if self.current_diff:
             self.show_exercise_list(self.current_diff)
 

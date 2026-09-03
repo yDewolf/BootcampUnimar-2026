@@ -283,4 +283,10 @@ class ExerciseScreen(MFrame[AppProtocol]):
 
         modal = ExerciseCreateModal(self, self.controller, self.current_exercise)
         self.wait_window(modal)
-    
+        if modal.deleted_exercise:
+            self.controller.back()
+            return
+
+        if self.current_exercise:
+            self._render_exercise_header(self.current_exercise)
+            self._render_exercise_details()

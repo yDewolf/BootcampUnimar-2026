@@ -25,6 +25,8 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
     context_txt: tk.Text
     sample_gen_path: Optional[Path] = None
 
+    deleted_exercise: bool = False
+
     def is_editing(self):
         return self.exercise_id != None
 
@@ -118,12 +120,47 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
 
         code_grid.pack(fill="x")
 
+        ttk.Separator(form_content, orient="horizontal").pack(fill="x", anchor="center", pady=10)
+
         buttons_frame = ttk.Frame(form_content)
+        buttons_frame.columnconfigure(0, weight=0)
+        buttons_frame.columnconfigure(1, weight=1)
+        buttons_frame.columnconfigure(2, weight=0)
         buttons_frame.pack(fill="x")
+
+        ttk.Frame(buttons_frame).grid(row=0, column=1)
 
         save_button = ttk.Button(buttons_frame, text="Salvar", command=self._handle_save_action)
         save_button.grid(row=0, column=0, sticky="w")
 
+        if self.is_editing():
+            delete_button = ttk.Button(buttons_frame, text="Excluir exercício", command=self._handle_delete_action)
+            delete_button.grid(row=0, column=2, sticky="e")
+
+    def _handle_delete_action(self):
+        if not self.exercise:
+            return
+        
+        proceed = messagebox.askokcancel("Confirme a ação", f"Tem certeza que deseja excluir o exercício '{self.exercise.title}'?")
+        if not proceed:
+            return
+
+        try:
+            if not self.exercise_id:
+                raise Exception("Nenhum exercício está sendo editado")
+
+            if not self.controller.logged_user:
+                raise Exception("O usuário deve estar logado para performar a ação")
+            
+            self.controller.server.delete_exercise(self.controller.logged_user, self.exercise_id)
+            self.deleted_exercise = True
+
+        except Exception as e:
+            messagebox.showerror("Erro na exclusão", f"Algo deu errado ao excluir o exercício:\n{e}")
+            return
+
+        messagebox.showinfo("Sucesso", "O exercício foi excluído com sucesso!")
+        self.destroy()
        
     def _handle_save_action(self):
         successful: bool = False
@@ -256,7 +293,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         path.write_text(template_contents, encoding="utf-8")
         if not self.is_editing():
             self.sample_gen_path = path
-        
+
         auto_open = messagebox.askyesno("Abrir arquivo?", "Abrir exercício no editor de texto padrão?")
         if auto_open:
             os.startfile(file_path)
