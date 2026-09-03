@@ -1,7 +1,9 @@
 import ast
 from enum import Enum
+from typing import Optional
 
 from leety.common.utils.str_utils import split_in_lines
+from leety.server.exercise.base_generator import TestCase
 
 class TemplateUtils:
     @staticmethod
@@ -31,7 +33,7 @@ class TemplateUtils:
         raise ValueError(f"Couldn't find {target_method}")
 
     @staticmethod
-    def create_solution_template(solve_annotations: tuple[dict[str, str], str], authors: list[str] = [], template_header: str = "", function_comments: str = "") -> str:
+    def create_solution_template(solve_annotations: tuple[dict[str, str], str], template_header: str = "", function_comments: str = "") -> str:
         args, return_type = solve_annotations
         arg_def_str: list[str] = [
             f"{arg}: {type_hint}" for arg, type_hint in args.items()
@@ -41,7 +43,6 @@ class TemplateUtils:
 f"""from typing import Any
 
 {template_header}
-# Autores: {",".join(authors)}
 
 class Solution:
     def solve(self, {", ".join(arg_def_str)}) -> {return_type}:
@@ -51,15 +52,31 @@ class Solution:
         )
 
     @staticmethod
-    def create_exercise_header(title: str, id: str, context: str, difficulty: str, max_width: int = 75) -> str:
+    def create_exercise_header(title: str, id: str, context: str, difficulty: str, example_cases: Optional[list[TestCase]], authors: list[str], max_width: int = 75) -> str:
         context_lines = split_in_lines(context, max_width)
+        case_strs: list[str] = []
+        for sample in example_cases or []:
+            inputs = sample["inputs"]
+            expected = sample["expected"]
+            input_list: list[str] = [
+                f"{key}={value}" for key, value in inputs.items()
+            ]
 
+            case_strs.append(
+                f"solve({", ".join(input_list)}) -> {expected}"
+            )
+        
         return (
 f"""# Exercício - {title} #{id}
 # Dificuldade: {difficulty}
+# Autores: {",".join(authors)}
 
 # Contextualização:
-#{"\n#".join(context_lines)}"""
+#{"\n#".join(context_lines)}
+
+# Exemplos de Input / Output
+#{"\n#".join(case_strs)}
+"""
         )
 
     @staticmethod

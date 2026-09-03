@@ -135,6 +135,8 @@ class ExerciseController:
         exercise_data.benchmark_samples = DEFAULT_BENCHMARK_SAMPLES
         
         sample_file = self._upload_generator(sample_gen, exercise_id)
+        self.generate_samples_for_exercise(exercise_id)
+
         solution_file = self._upload_solution_template(sample_gen, exercise_data)
         # TODO: talvez remover isso aqui já que esses caminhos são determinísticos
         # exercise_data.sample_gen_path = str(sample_file)
@@ -234,23 +236,29 @@ class ExerciseController:
 
     def _upload_solution_template(self, sample_gen_code: str, exercise_data: ExerciseModel) -> Path:
         assert exercise_data.id
-        
+
+        samples = self.load_samples(exercise_data.id)
+    
         annotations = TemplateUtils.extract_solution_annotations(sample_gen_code)
         diff = self.get_difficulty(exercise_data.diff_id)
-        template_header: str = TemplateUtils.create_exercise_header(
-            exercise_data.title, str(exercise_data.id), 
-            exercise_data.context, diff.capitalized_name if diff else exercise_data.diff_id
-        )
 
         contributors = []
         for id in (exercise_data.contributors or [] + [exercise_data.author_id] if exercise_data.author_id else []):
             user = self.user_controller.get_user(id)
             contributors.append(user.username if user else id)
 
+        template_header: str = TemplateUtils.create_exercise_header(
+            exercise_data.title, 
+            str(exercise_data.id), 
+            exercise_data.context, 
+            diff.capitalized_name if diff else exercise_data.diff_id,
+            (samples or [])[:5],
+            contributors,
+        )
+
         solution_template = TemplateUtils.create_solution_template(
             annotations, 
             template_header=template_header,
-            authors=contributors,
             function_comments=TemplateUtils.create_function_comments(comment="Implemente essa função para solucionar o problema descrito.")
         )
 
