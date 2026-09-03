@@ -15,9 +15,11 @@ from leety.server.sandbox.sandbox_controller import SandboxController
 from leety.server.user.user_controller import UserController
 
 import leety.server.exercise as exercise
+import leety.common as common
 
 EXERCISE_FOLDER: Path = Path(exercise.__file__).resolve().parent
 INTERNAL_TEMPLATES_FOLDER: Path = EXERCISE_FOLDER / "internal_templates"
+GENERATOR_TEMPLATE_PATH: Path = Path(common.__file__).resolve().parent / "exercise" / "templates" / "generator.py"
 DATABASE_SAVE_INTERVAL: float = 5 * 60
 # basicamente um wrapper com os controllers necessários para fazer as coisas funcionarem
 
@@ -168,6 +170,10 @@ class Server(RouterProtocol):
         self._validate_admin_only_act(admin_user, "Only admins can modify exercises")
         assert admin_user.id
         return self.exercise_controller.delete_exercise(exercise_id)
+
+
+    def get_generator_template(self) -> str:
+        return GENERATOR_TEMPLATE_PATH.read_text()
 
 
     # SolutionController:

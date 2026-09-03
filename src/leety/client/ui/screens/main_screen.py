@@ -125,6 +125,8 @@ class MainScreen(MFrame[AppProtocol]):
 
         ttk.Button(header_frame, text="Voltar", command=self.show_difficulties_grid).pack(side="left")
         default_title(header_frame, f"Exercícios: {difficulty.capitalized_name}", bold=True).pack(side="left", padx=15)
+        if self.controller.is_admin():
+            ttk.Button(header_frame, text="Criar Exercício", command=self._create_new_exercise).pack(side="right")
 
         try:
             exercises = self.controller.server.get_exercises(difficulty.id)
@@ -168,6 +170,10 @@ class MainScreen(MFrame[AppProtocol]):
             return
         
         modal = ExerciseCreateModal(self, self.controller, exercise)
+        self.wait_window(modal)
+
+    def _create_new_exercise(self):
+        modal = ExerciseCreateModal(self, self.controller, exercise=None)
         self.wait_window(modal)
 
     def _access_exercise(self, exercise: ExerciseModel):

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 import tkinter as tk
@@ -64,7 +65,8 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         form_grid.columnconfigure(1, weight=1)
         default_text(form_grid, "ID da dificuldade").grid(column=0, row=0, sticky="w", pady=5, padx=(0, 10))
         self.diff_id_combo = ttk.Combobox(form_grid, values=diff_ids)
-        self.diff_id_combo.set(self.exercise.diff_id if self.exercise else None)
+        if self.exercise:
+            self.diff_id_combo.set(self.exercise.diff_id)
         self.diff_id_combo.grid(column=1, row=0, sticky="ew", pady=5)
 
         default_text(form_grid, "Título").grid(column=0, row=1, sticky="w", padx=(0, 10))
@@ -101,6 +103,8 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
 
         if not self.is_editing():
             ttk.Button(buttons_frame, text="Selecionar Arquivo de Exercício", command=self._select_sample_gen_path).grid(row=0, column=1, sticky="w")
+            ttk.Button(buttons_frame, text="Criar Modelo de Exercício", command=self._create_exercise_template).grid(row=0, column=2, sticky="w")
+
         else:
             ttk.Button(buttons_frame, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
 
@@ -200,3 +204,24 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             raise Exception("O arquivo não existe mais")
 
         return self.sample_gen_path.read_text(encoding="utf-8")
+
+
+    def _create_exercise_template(self):
+        file_path = filedialog.asksaveasfilename(
+            title="Selecione um local para o template",
+            filetypes=[(".py", "*.py")],
+            defaultextension=".py",
+            # FIXME: trocar esse path
+            initialdir=str(self.controller.solutions_path),
+            initialfile=f"exercise_template"
+        )
+
+        if not file_path:
+            return
+
+        # FIXME: talvez incluir a biblioteca aqui também
+        template_contents = self.controller.server.get_generator_template()
+        Path(file_path).write_text(template_contents, encoding="utf-8")
+        auto_open = messagebox.askyesno("Abrir arquivo?", "Abrir exercício no editor de texto padrão?")
+        if auto_open:
+            os.startfile(file_path)
