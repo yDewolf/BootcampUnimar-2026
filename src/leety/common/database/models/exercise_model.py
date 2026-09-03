@@ -21,7 +21,7 @@ class BaseExerciseModel[idType: int](IndexableFieldModel[int]):
     contributors: Field[Optional[list[int]]] = Field(default=[])
     
     title: Field[str]
-    context: Field[str] = Field(default=None)
+    context: Field[str] = Field(default="")
 
     time_limit: Field[float]
     memory_limit: Field[int]

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable
+from typing import Callable, Optional
 
 from leety.client.app_protocol import AppProtocol
 from leety.client.enums.screen_index import ScreenNames
@@ -16,6 +16,7 @@ class MainScreen(MFrame[AppProtocol]):
     content_frame: ttk.Frame
 
     auth_button: ttk.Button
+    current_diff: Optional[ExerciseDifficulty] = None
 
     def __init__(self, parent: tk.Misc, controller: AppProtocol):
         super().__init__(parent, controller)
@@ -88,6 +89,7 @@ class MainScreen(MFrame[AppProtocol]):
 
 
     def show_difficulties_grid(self):
+        self.current_diff = None
         self._clear_content()
 
         info_container = ttk.Frame(self.content_frame)
@@ -118,6 +120,7 @@ class MainScreen(MFrame[AppProtocol]):
 
     def show_exercise_list(self, difficulty: ExerciseDifficulty):
         assert difficulty.id
+        self.current_diff = difficulty
         self._clear_content()
 
         header_frame = ttk.Frame(self.content_frame)
@@ -156,7 +159,9 @@ class MainScreen(MFrame[AppProtocol]):
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
         for exercise in exercises:
-            if not exercise.is_valid and not self.controller.is_admin(): continue
+            if not exercise.is_valid and not self.controller.is_admin(): 
+                continue
+
             author_name: str = "Desconhecido"
             if exercise.author_id:
                 author = self.controller.server.get_user_data(exercise.author_id)
@@ -173,8 +178,11 @@ class MainScreen(MFrame[AppProtocol]):
         self.wait_window(modal)
 
     def _create_new_exercise(self):
-        modal = ExerciseCreateModal(self, self.controller, exercise=None)
+        modal = ExerciseCreateModal(self, self.controller, exercise=None, default_diff=self.current_diff.id if self.current_diff else None)
         self.wait_window(modal)
+        
+        if self.current_diff:
+            self.show_exercise_list(self.current_diff)
 
     def _access_exercise(self, exercise: ExerciseModel):
         exercise_screen = self.controller._frames.get(ScreenNames.EXERCISE.value)

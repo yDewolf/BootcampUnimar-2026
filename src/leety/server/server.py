@@ -145,12 +145,12 @@ class Server(RouterProtocol):
         return template_path.read_text(encoding="utf-8")
 
 
-    def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> bool: 
+    def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> tuple[bool, int]: 
         self._validate_admin_only_act(admin_user, "Only admins can create exercises")
         assert admin_user.id
-        is_valid = self.exercise_controller.create_exercise(admin_user.id, exercise_data)
+        is_valid, id = self.exercise_controller.create_exercise(admin_user.id, exercise_data)
         self.database.save()
-        return is_valid
+        return is_valid, id
 
     def modify_exercise(self, admin_user: UserModel, exercise_id: int, new_data: BaseExerciseModel) -> bool: 
         self._validate_admin_only_act(admin_user, "Only admins can modify exercises")

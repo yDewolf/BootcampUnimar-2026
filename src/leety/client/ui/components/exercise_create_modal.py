@@ -9,11 +9,13 @@ from leety.client.ui.abstract_screen import MFrame
 from leety.client.ui.components.modals import CenterableModal
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseModel
+from leety.common.database.db_exceptions import InvalidCodeException
 
 class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
     exercise_id: Optional[int] = None
     exercise: Optional[ExerciseModel]
 
+    default_diff_id: Optional[str] = None
     diff_id_combo: ttk.Combobox
     title_var: tk.StringVar
 
@@ -27,13 +29,14 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         return self.exercise_id != None
 
 
-    def __init__(self, parent: tk.Misc, controller: AppProtocol, exercise: Optional[ExerciseModel] = None):
+    def __init__(self, parent: tk.Misc, controller: AppProtocol, exercise: Optional[ExerciseModel] = None, default_diff: Optional[str] = None):
         self.exercise = exercise
         self.controller = controller
+        self.default_diff_id = default_diff
         if self.exercise:
             self.exercise_id = self.exercise.id
         
-        super().__init__(parent, "500x400")
+        super().__init__(parent, "500x500")
         self.title(f"Editar/Criar exercício")
 
         self.title_var = tk.StringVar(value=exercise.title if exercise else None)
@@ -67,6 +70,9 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         self.diff_id_combo = ttk.Combobox(form_grid, values=diff_ids)
         if self.exercise:
             self.diff_id_combo.set(self.exercise.diff_id)
+        elif self.default_diff_id:
+            self.diff_id_combo.set(self.default_diff_id)
+        
         self.diff_id_combo.grid(column=1, row=0, sticky="ew", pady=5)
 
         default_text(form_grid, "Título").grid(column=0, row=1, sticky="w", padx=(0, 10))
@@ -95,34 +101,49 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
 
         restriction_grid.pack(fill="x")
 
+        default_title(form_content, text="Código", bold=True).pack(anchor="w")
+        code_grid = ttk.Frame(form_content)
+        code_grid.columnconfigure(0, weight=0)
+        code_grid.columnconfigure(1, weight=1)
+        code_grid.columnconfigure(2, weight=0)
+        
+        default_text(code_grid, "Código do exercício").grid(column=0, row=0, pady=5, sticky="w", padx=(0, 10))
+        ttk.Button(code_grid, text="Selecionar Arquivo", command=self._select_sample_gen_path).grid(row=0, column=1, sticky="w")
+         # TODO: botão de download do código do exercício
+        if not self.is_editing():
+            ttk.Button(code_grid, text="Criar Modelo", command=self._create_exercise_template).grid(row=0, column=2, sticky="w")
+
+        else:
+            ttk.Button(code_grid, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
+
+        code_grid.pack(fill="x")
+
         buttons_frame = ttk.Frame(form_content)
         buttons_frame.pack(fill="x")
 
         save_button = ttk.Button(buttons_frame, text="Salvar", command=self._handle_save_action)
         save_button.grid(row=0, column=0, sticky="w")
 
-        if not self.is_editing():
-            ttk.Button(buttons_frame, text="Selecionar Arquivo de Exercício", command=self._select_sample_gen_path).grid(row=0, column=1, sticky="w")
-            ttk.Button(buttons_frame, text="Criar Modelo de Exercício", command=self._create_exercise_template).grid(row=0, column=2, sticky="w")
-
-        else:
-            ttk.Button(buttons_frame, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
-
+       
     def _handle_save_action(self):
-        model = self._make_exercise_model()
-        if not model:
-            return
-
+        successful: bool = False
         try:
+            model = self._make_exercise_model()
+            if not model:
+                return
+
             if self.is_editing():
                 successful = self._edit_exercise(model)
             else:
                 successful = self._save_model(model)
         except Exception as e:
-            messagebox.showerror("Falha", f"Não foi possível salvar o exercício: {e}")
+            messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o exercício:\n{e}")
+            if isinstance(e, InvalidCodeException):
+                self.destroy()
 
         if successful:
             messagebox.showinfo("Sucesso", f"O exercício foi {"criado" if not self.is_editing() else "editado"} com sucesso!")
+            self.destroy()
 
 
     def _save_model(self, model: BaseExerciseModel) -> bool:
@@ -135,7 +156,11 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         
         file_contents = self._load_sample_gen()
         exercise = ExerciseModel(_sample_gen_code=file_contents, **model.get_data(raw=True))
-        successful = self.controller.server.create_exercise(self.controller.logged_user, exercise)
+        successful, id = self.controller.server.create_exercise(self.controller.logged_user, exercise)
+        exercise_data = self.controller.server.get_exercise(id)
+        if not exercise_data.is_valid:
+            raise InvalidCodeException("O código do exercício é inválido, isso pode ser alterado editando o exercício através da lista de exercícios")
+        
         return successful
 
     def _edit_exercise(self, exercise: BaseExerciseModel) -> bool:
@@ -150,7 +175,13 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
     def _make_exercise_model(self) -> Optional[BaseExerciseModel]:
         if not self.controller.logged_user:
             return
-        
+
+        if self.title_var.get() == "":
+            raise Exception("O título do exercício deve ser preenchido")
+
+        if self.context_txt.get(1.0) == "":
+            raise Exception("O exercício deve haver contextualização explicando o problema que o usuário deve resolver")
+
         new_model = BaseExerciseModel(
             id=self.exercise_id,
             diff_id=self.diff_id_combo.get(),
@@ -219,9 +250,13 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         if not file_path:
             return
 
+        path = Path(file_path)
         # FIXME: talvez incluir a biblioteca aqui também
         template_contents = self.controller.server.get_generator_template()
-        Path(file_path).write_text(template_contents, encoding="utf-8")
+        path.write_text(template_contents, encoding="utf-8")
+        if not self.is_editing():
+            self.sample_gen_path = path
+        
         auto_open = messagebox.askyesno("Abrir arquivo?", "Abrir exercício no editor de texto padrão?")
         if auto_open:
             os.startfile(file_path)

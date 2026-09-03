@@ -154,11 +154,13 @@ class FieldModel:
     
     def _set_from_dict(self, data_dict: dict[str, Any]):
         for key in self.header_keys(raw=True):
-            if not key in data_dict: continue
-            val = data_dict.get(key)
+            if not key in data_dict: 
+                continue
 
             field = getattr(self.__class__, key)
+            val = data_dict.get(key, None)
             if isinstance(field, Field):
+                if val == None: val = field.default_value
                 if isinstance(field._type_hint, type) and issubclass(field._type_hint, Enum):
                     val = field._type_hint(val)
             

@@ -62,7 +62,7 @@ class ExerciseController:
     # Exercise CRUD:
     
     # Registra o exercício no banco de dados e retorna se o código de geração é válido
-    def create_exercise(self, author_id: int, exercise_data: ExerciseModel) -> bool:
+    def create_exercise(self, author_id: int, exercise_data: ExerciseModel) -> tuple[bool, int]:
         if not self.user_controller.is_admin(author_id):
             raise EAdminOnlyAction(f"Author must be an admin to create exercises. id: {author_id}")
 
@@ -76,7 +76,7 @@ class ExerciseController:
         exercise_data._sample_gen_code = None
 
         is_valid = self.upload_sample_gen_code(exercise_data.id, sample_gen_code)
-        return is_valid
+        return is_valid, exercise_data.id
 
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]:
         return self.database.exercises.get_by_id(exercise_id)
