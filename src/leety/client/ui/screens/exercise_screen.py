@@ -11,6 +11,7 @@ from typing import Optional
 from leety.client.app_protocol import AppProtocol
 from leety.client.ui.abstract_screen import MFrame
 from leety.client.ui.components.attempts_modal import AttemptsHistoryModal
+from leety.client.ui.components.exercise_create_modal import ExerciseCreateModal
 from leety.client.ui.components.submission_modal import SubmissionModal
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseModel
@@ -68,9 +69,11 @@ class ExerciseScreen(MFrame[AppProtocol]):
     def _render_exercise_header(self, exercise: ExerciseModel):
         header_info_frame = ttk.Frame(self.header_frame)
         header_info_frame.grid(column=1, row=0, sticky="we")
-        header_info_frame.columnconfigure(0, weight=1)
-        header_info_frame.columnconfigure(1, weight=0)
-        header_info_frame.columnconfigure(2, weight=1)
+        header_info_frame.columnconfigure(0, weight=0)
+        header_info_frame.columnconfigure(1, weight=1)
+        header_info_frame.columnconfigure(2, weight=0)
+        if self.controller.is_admin():
+            header_info_frame.columnconfigure(3, weight=0)
 
         header_title = default_title(header_info_frame, text=f"Exercício #{exercise.id}")
         header_title.grid(sticky="w", row=0, column=0)
@@ -82,6 +85,10 @@ class ExerciseScreen(MFrame[AppProtocol]):
         diff_name = diff.capitalized_name if diff else exercise.diff_id
         header_diff = default_title(header_info_frame, text=f"Dificuldade: {diff_name}")
         header_diff.grid(sticky="e", row=0, column=2)
+
+        if self.controller.is_admin():
+            edit_button = ttk.Button(header_info_frame, text="Editar", command=self._handle_admin_edit)
+            edit_button.grid(sticky="e", row=0, column=3)
 
     def _render_exercise_details(self):
         for widget in self.content_container.winfo_children():
@@ -268,3 +275,12 @@ class ExerciseScreen(MFrame[AppProtocol]):
         except Exception as e:
             modal.after(0, lambda: messagebox.showerror("Erro", f"Erro no servidor: {e}"))
             modal.after(0, modal.destroy)
+
+
+    def _handle_admin_edit(self):
+        if not self.controller.is_admin():
+            return
+
+        modal = ExerciseCreateModal(self, self.controller, self.current_exercise)
+        self.wait_window(modal)
+    

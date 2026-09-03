@@ -5,6 +5,7 @@ from typing import Callable
 from leety.client.app_protocol import AppProtocol
 from leety.client.enums.screen_index import ScreenNames
 from leety.client.ui.abstract_screen import MFrame
+from leety.client.ui.components.exercise_create_modal import ExerciseCreateModal
 from leety.client.ui.screens.exercise_screen import ExerciseScreen
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseDifficulty, ExerciseModel
@@ -159,9 +160,15 @@ class MainScreen(MFrame[AppProtocol]):
                 author = self.controller.server.get_user_data(exercise.author_id)
                 author_name = author.username if author else author_name
             
-            exercise_row(self.controller, list_container, exercise, author_name, self._access_exercise)
+            exercise_row(self.controller, list_container, exercise, author_name, self._access_exercise, self._edit_exercise)
             ttk.Separator(list_container, orient="horizontal").pack(fill="x")
             
+    def _edit_exercise(self, exercise: ExerciseModel):
+        if not self.controller.is_admin():
+            return
+        
+        modal = ExerciseCreateModal(self, self.controller, exercise)
+        self.wait_window(modal)
 
     def _access_exercise(self, exercise: ExerciseModel):
         exercise_screen = self.controller._frames.get(ScreenNames.EXERCISE.value)
@@ -192,7 +199,7 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     description_txt = tk.Text(card, wrap="word", relief="flat", height=4)
     description_txt.insert(1.0, diff.description)
     description_txt.config(state="disabled")
-    description_txt.grid(row=1, sticky="w")
+    description_txt.grid(row=1, sticky="w", pady=5)
 
     ttk.Button(
         card, 
@@ -201,7 +208,14 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     ).grid(row=2, sticky="e")
     return card
 
-def exercise_row(controller: AppProtocol, parent: tk.Misc, exercise: ExerciseModel, author_name: str, access_exercise: Callable[[ExerciseModel], None]) -> ttk.Frame:
+def exercise_row(
+    controller: AppProtocol, 
+    parent: tk.Misc, 
+    exercise: ExerciseModel, 
+    author_name: str, 
+    access_exercise: Callable[[ExerciseModel], None], 
+    edit_exercise: Callable[[ExerciseModel], None]
+) -> ttk.Frame:
     row_frame = ttk.Frame(parent, padding=(5, 8))
     row_frame.pack(fill="x")
     row_frame.columnconfigure(0, weight=0)
@@ -229,6 +243,6 @@ def exercise_row(controller: AppProtocol, parent: tk.Misc, exercise: ExerciseMod
 
     if controller.is_admin():
         # TODO:
-        ttk.Button(button_frame, text="Editar").pack(side="right")
+        ttk.Button(button_frame, text="Editar", command=lambda : edit_exercise(exercise)).pack(side="right")
 
     return row_frame
