@@ -22,6 +22,9 @@ class MainScreen(MFrame[AppProtocol]):
         self._setup_widgets()
         self.show_difficulties_grid()
 
+    def _reload(self):
+        self.show_difficulties_grid()
+
     def _setup_widgets(self):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=0) # navbar
@@ -43,18 +46,22 @@ class MainScreen(MFrame[AppProtocol]):
         navbar.grid(row=0, column=0, sticky="ew")
 
         navbar.columnconfigure(0, weight=0) # 'logo' da plataforam
-        navbar.columnconfigure(1, weight=1) # barra de pesquisa
-        navbar.columnconfigure(2, weight=0) # perfil
+        navbar.columnconfigure(1, weight=0)
+        navbar.columnconfigure(2, weight=1)
+        # navbar.columnconfigure(1, weight=1) # barra de pesquisa
+        navbar.columnconfigure(3, weight=0) # perfil
 
         brand_label = default_title(navbar, text="leety")
         brand_label.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
+        reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload)
+        reload_button.grid(row=0, column=1, sticky="w")
         # search_entry = ttk.Entry(navbar, textvariable=self.search_var)
         # search_entry.grid(row=0, column=1, sticky="ew", padx=10)
         # search_entry.insert(0, "Pesquise exercícios aqui !!")
         
         self.auth_button = ttk.Button(navbar)
-        self.auth_button.grid(row=0, column=2, padx=(15, 0), sticky="e")
+        self.auth_button.grid(row=0, column=3, padx=(15, 0), sticky="e")
 
     def refresh_auth_button(self):
         if self.controller.logged_user:
@@ -147,11 +154,13 @@ class MainScreen(MFrame[AppProtocol]):
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
         for exercise in exercises:
+            if not exercise.is_valid and not self.controller.is_admin(): continue
+
             author_name: str = "Desconhecido"
             if exercise.author_id:
                 author = self.controller.server.get_user_data(exercise.author_id)
                 author_name = author.username if author else author_name
-            exercise_row(list_container, exercise, author_name, self._access_exercise)
+            exercise_row(self.controller, list_container, exercise, author_name, self._access_exercise)
             ttk.Separator(list_container, orient="horizontal").pack(fill="x")
             
 
@@ -193,7 +202,7 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     ).grid(row=2, sticky="e")
     return card
 
-def exercise_row(parent: tk.Misc, exercise: ExerciseModel, author_name: str, access_exercise: Callable[[ExerciseModel], None]) -> ttk.Frame:
+def exercise_row(controller: AppProtocol, parent: tk.Misc, exercise: ExerciseModel, author_name: str, access_exercise: Callable[[ExerciseModel], None]) -> ttk.Frame:
     row_frame = ttk.Frame(parent, padding=(5, 8))
     row_frame.pack(fill="x")
     row_frame.columnconfigure(0, weight=3)
@@ -205,5 +214,9 @@ def exercise_row(parent: tk.Misc, exercise: ExerciseModel, author_name: str, acc
     default_text(row_frame, exercise.title).grid(row=0, column=0, sticky="w")
     default_text(row_frame, author_display).grid(row=0, column=1, sticky="w")
     ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=2, sticky="e")
+
+    if controller.is_admin():
+        row_frame.columnconfigure(3, weight=0)
+        ttk.Button(row_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).grid(row=0, column=2, sticky="e")
 
     return row_frame

@@ -4,7 +4,7 @@ import time
 from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import ExerciseAttempt, ExerciseModel
 from leety.common.database.models.user_model import UserModel
-from leety.common.dto.attempt_result import AttemptResult, RuntimeErrorAttempt, SolutionStatus, WrongAnswerAttempt
+from leety.common.dto.attempt_result import AcceptedAttempt, AttemptResult, RuntimeErrorAttempt, SolutionStatus, WrongAnswerAttempt
 from leety.common.utils.code_runner import CodeRunner
 from leety.server.exercise.base_generator import TestCase
 from leety.server.exercise.exercise_controller import ExerciseController
@@ -107,7 +107,7 @@ class SolutionController:
         )
         match output_model.status:
             case SolutionStatus.ACCEPTED:
-                return (True, AttemptResult.from_dict(output_model._data))
+                return (True, AcceptedAttempt.from_dict(output_model._data))
             
             case SolutionStatus.RUNTIME_ERROR:
                 return (False, RuntimeErrorAttempt(error=dict_output["error"], **output_model._data))

@@ -33,6 +33,14 @@ class AppProtocol(ScreenManager):
         
         return self._logged_user
 
+    def is_admin(self) -> bool:
+        if not self.logged_user:
+            return False
+        if self.logged_user.id == None:
+            return False
+        
+        return self.server.is_admin(self.logged_user.id)
+
     def log_out(self):
         self._logged_user = None
         self._update_login_cfg(None, None)

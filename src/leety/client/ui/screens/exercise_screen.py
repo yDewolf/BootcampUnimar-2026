@@ -21,6 +21,10 @@ class ExerciseScreen(MFrame[AppProtocol]):
     content_container: ttk.Frame
 
     _submit_button: ttk.Button
+    _see_attempts_button: ttk.Button
+    
+    _submission_thread: Optional[threading.Thread] = None
+    _submission_modal: Optional[SubmissionModal] = None
 
     def __init__(self, parent: tk.Misc, controller: AppProtocol):
         super().__init__(parent, controller)
@@ -31,15 +35,17 @@ class ExerciseScreen(MFrame[AppProtocol]):
         self._render_exercise_details()
 
     def tkraise(self, *args, **kwargs) -> None:
-        self.refresh_submit_button()
+        self.refresh_buttons()
         super().tkraise(*args, **kwargs)
 
-    def refresh_submit_button(self):
+    def refresh_buttons(self):
         if not self.controller.logged_user:
             self._submit_button.config(state="disabled")
+            self._see_attempts_button.config(state="disabled")
             return
 
         self._submit_button.config(state="normal")
+        self._see_attempts_button.config(state="normal")
 
     def _setup_widgets(self):
         self.config(padx=10, pady=10)
@@ -125,12 +131,18 @@ class ExerciseScreen(MFrame[AppProtocol]):
         exercise_actions.rowconfigure(0)
         exercise_actions.columnconfigure(0, weight=0)
         exercise_actions.columnconfigure(1, weight=0)
+        exercise_actions.columnconfigure(2, weight=0)
 
         template_buton = ttk.Button(exercise_actions, text="Criar solução", command=self._create_solution_template)
         template_buton.grid(sticky="w", row=0, column=0)
         self._submit_button = ttk.Button(exercise_actions, text="Enviar solução", command=self._submit_solution)
         self._submit_button.grid(sticky="e", row=0, column=1)
 
+        self._see_attempts_button = ttk.Button(exercise_actions, text="Ver tentativas", command=self._check_attempts)
+        self._see_attempts_button.grid(sticky="e", row=0, column=2)
+
+    def _check_attempts(self):
+        pass
 
     def _create_solution_template(self):
         if not self.current_exercise:
@@ -180,25 +192,38 @@ class ExerciseScreen(MFrame[AppProtocol]):
             return
 
         try:
-            user = self.controller.logged_user
-            assert user
+            if not self._submission_modal:
+                self._submission_modal = SubmissionModal(
+                    self, self.controller, self.current_exercise,
+                    self._start_submit_thread, Path(file_path)
+                )
+                self._submission_modal.submit_attempt()
 
-            path = Path(file_path)
-            file_contents = path.read_text(encoding="utf-8")
-
-            modal = SubmissionModal(self, self.controller, self.current_exercise, file_contents)
-            thread = threading.Thread(target=lambda: self.process_submission(user, modal, file_contents), daemon=True)
-            thread.start()
-            self.wait_window(modal)
-
-            # FIXME
-            thread.join(timeout=5)
+            self.wait_window(self._submission_modal)
+            self._submission_modal = None
 
         except Exception as e:
             messagebox.showerror(
                 "Erro de Leitura",
                 f"Não foi possível ler o arquivo selecionado: \n{str(e)}"
             )
+
+    def _start_submit_thread(self, file_path: Path) -> tuple[Optional[threading.Thread], str]:
+        file_contents = file_path.read_text(encoding="utf-8")
+        if self._submission_thread:
+            if self._submission_thread.is_alive():
+                return self._submission_thread, file_contents
+        
+        modal = self._submission_modal
+        if not modal: 
+            return self._submission_thread, file_contents
+        
+        user = self.controller.logged_user
+        assert user
+
+        self._submission_thread = threading.Thread(target=lambda: self.process_submission(user, modal, file_contents), daemon=True)
+        self._submission_thread.start()
+        return self._submission_thread, file_contents
 
     def process_submission(self, user: UserModel, modal: SubmissionModal, file_contents: str):
         assert user
