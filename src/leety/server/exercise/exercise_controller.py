@@ -66,6 +66,7 @@ class ExerciseController:
         if not self.user_controller.is_admin(author_id):
             raise EAdminOnlyAction(f"Author must be an admin to create exercises. id: {author_id}")
 
+        exercise_data.author_id = author_id
         sample_gen_code = exercise_data._sample_gen_code
         if not sample_gen_code:
             raise Exception(f"Missing Sample Generator Code for exercise {exercise_data}")
