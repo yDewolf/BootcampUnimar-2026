@@ -4,7 +4,7 @@
 A ideia do projeto é implementar a principal funcionalidade desse tipo de plataforma que é a resolução de exercícios, além da possibilidade de administradores adicionarem e editarem exercícios.
 
 ## Demonstração
-![Demonstração no Youtube](https://www.youtube.com/watch?v=Uf1xk5vxqkM)
+[Demonstração no Youtube](https://www.youtube.com/watch?v=Uf1xk5vxqkM)
 
 ## Como rodar o projeto:
 Primeiro **instale o projeto** usando ``pip``
