@@ -16,9 +16,19 @@ Depois **execute o main** do client:
 python src/leety/client/main.py
 ```
 
+## Aprendizados:
+###### Nessa seção vou registrar o que aprendi com esse projeto
+Gostaria de iniciar essa seção mencionando que eu não muito bom com design gráfico e não gosto muito de fazer interfaces gráficas. Por isso, **o principal aprendizado que eu tive com esse projeto foi sobre como usar o `tkinter`**.
+#### tkinter:
+Quando eu iniciei esse projeto eu não tinha ideia de como usar o `tkinter`. Confesso que várias vezes tive que pedir para chatbots me explicarem como fazer coisas específicas, como centralizar elementos dentro de `grid`s ou `pack`s.
+O importante é que através desse projeto eu consegui aprender bastante sobre o `tkinter`, no fim das contas a interface ficou bem agradável (para o meu gosto), acho que o histórico com java swing ajudou um pouco.
+#### Outras coisas:
+Para não falar que eu só aprendi a mexer com o `tkinter`, eu também aprendi como funcionam subprocessos em python, como implementar um banco de dados baseado em `.csv` com typesafety decente.
+
 ## Sobre a implementação:
 ###### Nessa seção vou deixar registrado meus comentários sobre a implementação do projeto (incluindo opiniões pessoais)
-Eu comecei a desenvolver esse projeto no dia 24 de agosto, mas eu já tinha diversas ideias de como implementar. A única coisa que eu não tinha certeza de como seria implementada era a execução de código dos usuários (já que é uma questão de segurança).
+Eu comecei a desenvolver esse projeto no dia 24 de agosto, mas eu já tinha diversas ideias de como implementar. A única coisa que eu não tinha ideia de como seria implementada era a execução de código dos usuários (já que é uma questão de segurança).
+Outra coisa que eu acho relevante é que eu evitei ao máximo usar bibliotecas externas como `pydantic` ou qualquer outro tipo de biblioteca que facilitasse a implementação de algo (foi por isso que eu implementei o banco de dados manualmente).
 ### Arquitetura do projeto:
 O projeto foi inicialmente desenvolvido pensando apenas no [servidor](/src/leety/server) e depois eu acabei desenvolvendo uma interface usando o tkinter conforme proposto nas aulas.
 #### Estrutura de pastas
