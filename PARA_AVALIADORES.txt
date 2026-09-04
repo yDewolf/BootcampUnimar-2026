@@ -1,0 +1,7 @@
+AVISO: 
+Eu acabei não fazendo um vídeo demonstrando e explicando o projeto ao mesmo
+tempo porque daria mais de 10 minutos de vídeo.
+Caso esteja interessado em entender o funcionamento interno do projeto, 
+recomendo que leia a "documentação" que eu escrevi no README.md
+
+Vídeo demonstrando o projeto: https://www.youtube.com/watch?v=Uf1xk5vxqkM
