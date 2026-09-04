@@ -7,6 +7,7 @@ from leety.client.ui.abstract_screen import MFrame
 from leety.client.enums.screen_index import ScreenNames
 from leety.client.ui.screens.exercise_screen import ExerciseScreen
 from leety.client.ui.screens.login_screen import LoginScreen
+from leety.client.ui.screens.profile_screen import ProfileScreen
 from leety.client.ui.screens.register_screen import RegisterScreen
 from leety.client.ui.screens.main_screen import MainScreen
 from leety.server.server import Server
@@ -70,6 +71,7 @@ app = AppRoot({
     ScreenNames.MAIN: MainScreen,
     ScreenNames.REGISTER: RegisterScreen,
     ScreenNames.LOGIN: LoginScreen,
-    ScreenNames.EXERCISE: ExerciseScreen
+    ScreenNames.EXERCISE: ExerciseScreen,
+    ScreenNames.PROFILE: ProfileScreen
 }, "main")
 app.open_window()

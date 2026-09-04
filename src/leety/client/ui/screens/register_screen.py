@@ -17,10 +17,16 @@ class RegisterScreen(MFrame[AppProtocol]):
         self.grid()
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=0)
-        self.rowconfigure(1, weight=1)
+        
+        self.root = ttk.Frame(self, padding=10)
+        self.root.grid(column=0, row=0, sticky="nsew")
+
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=0)
+        self.root.rowconfigure(1, weight=1)
 
         login_form(
-            self, self._go_to_login, self._handle_register,
+            self.root, self.controller, self._go_to_login, self._handle_register,
             "Já tem uma conta? Faça login", "Cadastrar", "Cadastro"
         )
 

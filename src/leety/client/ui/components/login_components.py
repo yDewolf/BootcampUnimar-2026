@@ -8,7 +8,8 @@ from leety.client.ui.ui_components import default_text, default_title
 
 
 def login_form(
-    root_container: MFrame[AppProtocol], 
+    root_container: ttk.Frame,
+    controller: AppProtocol, 
     goto_counterpart: Callable[[], None], 
     on_form_send: Callable[[str, str, bool], None],
     counterpart_link_txt: str,
@@ -38,7 +39,7 @@ def login_form(
     top_row.columnconfigure(0, weight=0)
     top_row.columnconfigure(1, weight=1)
     top_row.columnconfigure(2, weight=0)
-    ttk.Button(top_row, text="Voltar", command=root_container.controller.back).grid(row=0, column=0, sticky="w")
+    ttk.Button(top_row, text="Voltar", command=controller.back).grid(row=0, column=0, sticky="w")
     default_title(top_row, f"Leety - {title}").grid(row=0, column=1, sticky="ew")
 
     form_frame = ttk.Frame(root_container, padding=20, width=250)
