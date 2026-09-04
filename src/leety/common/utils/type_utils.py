@@ -16,7 +16,7 @@ def get_attributes_of_type(cls: type, target_types: tuple[type] | type, exclude:
                 continue
 
         origin = get_origin(type_hint) or type_hint
-        if issubclass(origin, target_types):
+        if isinstance(origin, type) and issubclass(origin, target_types):
             if exclude and issubclass(origin, exclude):
                 continue
             

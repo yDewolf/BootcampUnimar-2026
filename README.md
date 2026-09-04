@@ -1,5 +1,12 @@
 # BootcampUnimar-2026
 Projeto do Bootcamp Unimar 2026
 
-## TODOs:
-- [ ] pensar em um nome decente para o projeto
+## Como rodar o projeto:
+Primeiro instale o projeto usando ``pip``
+```
+pip install -e .
+```
+Depois execute o main do client:
+```
+python src/leety/client/main.py
+```

@@ -173,11 +173,18 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
                 successful = self._edit_exercise(model)
             else:
                 successful = self._save_model(model)
+            
+            if model.id:
+                exercise_data = self.controller.server.get_exercise(model.id)
+                if not exercise_data.is_valid:
+                    raise InvalidCodeException("O código do exercício é inválido, isso pode ser corrigido editando o exercício através da lista de exercícios")
+        
         except Exception as e:
             messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o exercício:\n{e}")
             if isinstance(e, InvalidCodeException):
                 self.destroy()
 
+        
         if successful:
             messagebox.showinfo("Sucesso", f"O exercício foi {"criado" if not self.is_editing() else "editado"} com sucesso!")
             self.destroy()
@@ -194,10 +201,6 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         file_contents = self._load_sample_gen()
         exercise = ExerciseModel(_sample_gen_code=file_contents, **model.get_data(raw=True))
         successful, id = self.controller.server.create_exercise(self.controller.logged_user, exercise)
-        exercise_data = self.controller.server.get_exercise(id)
-        if not exercise_data.is_valid:
-            raise InvalidCodeException("O código do exercício é inválido, isso pode ser alterado editando o exercício através da lista de exercícios")
-        
         return successful
 
     def _edit_exercise(self, exercise: BaseExerciseModel) -> bool:

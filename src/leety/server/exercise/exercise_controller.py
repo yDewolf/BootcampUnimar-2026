@@ -113,8 +113,9 @@ class ExerciseController:
         # Atualizar o template de solução
         code_file = self.exercise_sample_gen_path(exercise_id)
         if code_file.exists():
+            
             code = code_file.read_text(encoding="utf-8")
-            self._upload_solution_template(code, exercise)
+            self._upload_solution_template(code, exercise, generate_samples_if_none=True)
         
         return True
 
@@ -172,14 +173,17 @@ class ExerciseController:
         
         return parsed
 
-    def load_samples(self, exercise_id: int) -> Optional[list[TestCase]]:
+    def load_samples(self, exercise_id: int, generate_samples_if_none: bool = False) -> Optional[list[TestCase]]:
         exercise = self.get_exercise(exercise_id)
         if not exercise:
             raise Exception(f"Exercise of id {exercise_id} doesn't isn't registered in database")
 
         sample_path = self.exercise_sample_path(exercise_id)
-        if not sample_path.exists():
-            raise Exception(f"Couldn't find samples for exercise #{exercise_id} in {sample_path}")
+        if self.exercise_has_samples(exercise_id):
+            if not generate_samples_if_none:
+                raise Exception(f"Couldn't find samples for exercise #{exercise_id} in {sample_path}")
+            else:
+                self.generate_samples_for_exercise(exercise_id)
 
         json_str = sample_path.read_text(encoding="utf-8")
         try:
@@ -234,10 +238,12 @@ class ExerciseController:
         code_file.write_text(sample_gen_code, encoding="utf-8")
         return code_file
 
-    def _upload_solution_template(self, sample_gen_code: str, exercise_data: ExerciseModel) -> Path:
+    def _upload_solution_template(self, sample_gen_code: str, exercise_data: ExerciseModel, generate_samples_if_none: bool = False) -> Path:
         assert exercise_data.id
 
-        samples = self.load_samples(exercise_data.id)
+        samples = self.load_samples(exercise_data.id, generate_samples_if_none)
+        if samples is None or len(samples) == 0:
+            exercise_data.is_valid = False
     
         annotations = TemplateUtils.extract_solution_annotations(sample_gen_code)
         diff = self.get_difficulty(exercise_data.diff_id)
@@ -278,3 +284,16 @@ class ExerciseController:
 
     def exercise_solution_template(self, exercise_id: int) -> Path:
         return self._get_exercise_folder(exercise_id) / SOLUTION_FILENAME
+
+    def exercise_has_samples(self, exercise_id: int) -> bool:
+        path = self.exercise_sample_path(exercise_id)
+        if not path.exists():
+            return False
+
+        contents = path.read_text(encoding="utf-8")
+        try:
+            parsed = json.loads(contents)
+        except Exception as e:
+            return False
+        
+        return True
