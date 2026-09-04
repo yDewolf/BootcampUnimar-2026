@@ -91,3 +91,7 @@ Gostaria de adicionar no fim desse readme minhas opiniões finais sobre o projet
 Esse ano, infelizmente, não pudi participar de todas as aulas devido a motivos pessoais o que tornou o processo de desenvolvimento bem caótico. Uma das consequências disso foi eu descobrir sobre o uso do `tkinter` na segunda-feira (31/08), faltando praticamente 3 dias para a data de entrega, então foi bem difícil organizar meu tempo para finalizar o projeto. 
 Felizmente, foi possível finalizar praticamente tudo que eu de fato gostaria de implementar.
 No fim eu fiquei bem satisfeito com o projeto em praticamente todos os aspectos, o que eu melhoraria seria a interface e a organização dos arquivos do client e provavelmente a segurança do meu sistema de "sandbox".
+
+### Estatísticas do wakatime:
+![WakaTime (apenas no meu PC)](repo_assets/wakatime.png)
+![Estatísticas gerais do WakaTime](repo_assets/wakatime_stats.png)
