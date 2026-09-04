@@ -1,6 +1,17 @@
 id,diff_id,author_id,contributors,title,context,time_limit,memory_limit,benchmark_time,benchmark_samples,is_valid
 1,easy,,[1],test,"Dois valores inteiros serão passados, o resultado deve ser a soma deles.",90.02,16,1.2889206000836566,50,True
-2,medium,1,[],Teste,Subtração entre dois números inteiros,90.0,16,0.0,,False
-3,medium,1,[1],Test2,,10.0,10,0.0,,False
-4,easy,1,[1],Exercício Teste,"Olá, eu sou um exercício de teste e você deve fazer uma subtraçao simples entre dois valores para atingir o resultado correto",30.0,16,1.248744200100191,50,False
-5,hard,1,[],oi,oi			,2.0,10,1.2362175999442115,50,True
+2,easy,2,[],Soma de Dois Números,"Dado dois números inteiros `n0` e `n1`, retorne a soma entre eles.",90.0,16,1.2332714999793097,50,True
+3,easy,2,[],Par ou Ímpar,Receba um número inteiro `n` e retorne `True` se for par ou `False` caso contrário.,90.0,16,1.232878900016658,50,True
+4,easy,2,[],Contagem de Vogais,"Dada uma string `text`, retorne a quantidade total de vogais (a, e, i, o, u) presentes nela (ignorando case).",90.0,16,1.2727463999763131,50,True
+5,easy,2,[],Inverter String,"Dada uma string `text`, retorne a string invertida.",90.0,16,1.209672600030899,50,True
+6,easy,2,[],Maior Elemento da Lista,"Dada uma lista não vazia de inteiros `nums`, retorne o maior valor presente nela.",90.0,16,1.22630060010124,50,True
+7,medium,2,[],Two Sum,"Dada uma lista de inteiros `nums` e um inteiro `target`, retorne os índices dos dois números cuja soma seja igual a `target`.",90.0,16,1.2078989000292495,50,True
+8,medium,2,[],Verificar Anagrama,"Dadas duas strings `s1` e `s2`, retorne `True` se uma for anagrama da outra.",90.0,16,1.2340790999587625,50,True
+9,medium,2,[],Número Faltante,"Dada uma lista `nums` de tamanho `n` contendo números distintos no intervalo de `0` a `n`, retorne o único número do intervalo que está faltando.",90.0,16,1.2219928000122309,50,True
+10,medium,2,[],Compactação de String (Run-Length Encoding),"Dada uma string `s`, retorne uma versão compactada substituindo repetições consecutivas de um caractere pelo caractere seguido da quantidade de repetições. Ex: 'aab' -> 'a2b1'.",90.0,16,1.2705477999988943,50,True
+11,medium,2,[],Fatorial com Memoização/Iterativo,Receba um número inteiro `n` (0 <= n <= 20) e retorne o valor do seu fatorial (`n!`).,90.0,16,1.2640136999543756,50,True
+12,hard,2,[],Maior Substring sem Repetição,"Dada uma string `s`, encontre o comprimento da maior substring sem caracteres repetidos.",90.0,16,1.2067357000196353,50,True
+13,hard,2,[],Subarray com Maior Soma (Kadane),"Dada uma lista de inteiros `nums`, encontre a soma do subarray contíguo que possui a maior soma.",90.0,16,1.233701099990867,50,True
+14,hard,2,[],Mesclar Intervalos Sobrepostos,"Dada uma lista de intervalos `intervals` onde `intervals[i] = [start, end]`, mescle todos os intervalos sobrepostos e retorne a lista final.",90.0,16,1.2150898000691086,50,True
+15,hard,2,[],Validador de Parênteses / Expressão,"Dada uma string `s` contendo apenas os caracteres '(', ')', '{', '}', '[' e ']', determine se a sequência de parênteses é válida.",90.0,16,1.2035334999673069,50,True
+16,hard,2,[],Menor Número de Saltos (Jump Game II),"Dada uma lista de inteiros não negativos `nums` onde cada elemento representa o número máximo de passos que você pode saltar a partir daquela posição, retorne o número mínimo de saltos para atingir o último índice.",90.0,16,1.225716800079681,50,True

@@ -1,6 +1,1 @@
 id,author_id,exercise_id,valid,attempt_result,solve_time,sample_amount,correct_results
-1,1,1,False,"{""_auto_validate"": false, ""status"": ""WRONG_ANSWER"", ""test_case"": 1, ""elapsed"": 1.2599355999846011}",1.2599355999846011,100,0
-2,1,1,True,"{""_auto_validate"": false, ""status"": ""ACCEPTED"", ""test_case"": null, ""elapsed"": 1.2754722000099719}",1.2754722000099719,100,100
-3,1,1,True,"{""_auto_validate"": false, ""status"": ""ACCEPTED"", ""test_case"": null, ""elapsed"": 1.268632399966009}",1.268632399966009,100,100
-4,1,1,False,"{""_auto_validate"": false, ""status"": ""WRONG_ANSWER"", ""test_case"": 1, ""elapsed"": 1.0932002999998076}",1.0932002999998076,100,0
-5,1,1,False,"{""_auto_validate"": false, ""status"": ""RUNTIME_ERROR"", ""test_case"": 0, ""elapsed"": 1.1189465999996173}",1.1189465999996173,100,0

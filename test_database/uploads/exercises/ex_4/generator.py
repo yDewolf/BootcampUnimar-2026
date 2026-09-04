@@ -1,9 +1,12 @@
 from base_generator import BaseSampleGenerator, Any
 import random
+import string
 
 class SampleGenerator(BaseSampleGenerator):
     def generate_inputs(self) -> dict[str, Any]:
-        return {"n0": random.randint(-100, 100), "n1": random.randint(-100, 100)}
+        chars = string.ascii_letters + " "
+        s = "".join(random.choice(chars) for _ in range(random.randint(5, 30)))
+        return {"text": s}
 
-    def solver(self, n0: int, n1: int) -> Any:
-        return n0 - n1
+    def solver(self, text: str) -> int:
+        return sum(1 for char in text.lower() if char in "aeiou")

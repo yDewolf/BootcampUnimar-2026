@@ -1,18 +1,22 @@
 from typing import Any
 
-# Exercício - Exercício Teste #4
+# Exercício - Contagem de Vogais #4
 # Dificuldade: Fácil
-# Autores: yDewolf
+# Autores: Google Gemini
 
 # Contextualização:
-# Olá, eu sou um exercício de teste e você deve fazer uma subtraçao simples entre dois valores
-# para atingir o resultado correto
+# Dada uma string `text`, retorne a quantidade total de vogais (a, e, i, o, u) presentes nela
+# (ignorando case).
 
 # Exemplos de Input / Output
-#
+#solve(text=gSNKszkEuPBlpKpH) -> 2
+#solve(text=Ou GRUgs) -> 3
+#solve(text=GqnfxcTaU) -> 2
+#solve(text=DkiKI xzuVAOnbiUIuz) -> 9
+#solve(text=IF GKcMeLqhprRr) -> 2
 
 
 class Solution:
-    def solve(self, n0: int, n1: int) -> Any:
+    def solve(self, text: str) -> int:
         # Implemente essa função para solucionar o problema descrito.
         pass
