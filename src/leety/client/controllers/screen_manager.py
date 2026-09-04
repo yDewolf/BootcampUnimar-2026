@@ -35,7 +35,12 @@ class ScreenManager(ScreenManagerProtocol):
         screen = self._frames.get(target_screen)
         if screen:
             if screen in self._frame_order:
-                self._frame_order.remove(screen)
+                idx = self._frame_order.index(screen)
+                self._frame_order = self._frame_order[:idx + 1]
+                self._update_current_screen(idx)
+                return
+
+            self._frame_order = self._frame_order[:self._current_frame_idx + 1]
 
             idx = len(self._frame_order)
             self._frame_order.append(screen)
