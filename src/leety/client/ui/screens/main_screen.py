@@ -11,6 +11,9 @@ from leety.client.ui.screens.exercise_screen import ExerciseScreen
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseDifficulty, ExerciseModel
 
+from leety.client.ui.ui_assets import UNIMAR_LOGO
+from PIL import ImageTk
+
 DEFAULT_DIFF_COLUMNS = 3
 ITEMS_PER_PAGE = 5
 
@@ -23,6 +26,8 @@ class MainScreen(MFrame[AppProtocol]):
 
     current_page: int = 1
     items_per_page: int = ITEMS_PER_PAGE
+
+    unimar_logo: ImageTk.PhotoImage
 
     def __init__(self, parent: tk.Misc, controller: AppProtocol):
         super().__init__(parent, controller)
@@ -51,17 +56,22 @@ class MainScreen(MFrame[AppProtocol]):
 
         navbar.columnconfigure(0, weight=0)
         navbar.columnconfigure(1, weight=0)
-        navbar.columnconfigure(2, weight=1)
-        navbar.columnconfigure(3, weight=0)
+        navbar.columnconfigure(2, weight=0)
+        navbar.columnconfigure(3, weight=1)
+        navbar.columnconfigure(4, weight=0)
 
-        brand_label = default_title(navbar, text="Codei", style="Navbar.TLabel")
+        brand_label = default_title(navbar, text="Codei", style="Navbar.TLabel", font_name="consolas")
         brand_label.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
+        self.unimar_logo = ImageTk.PhotoImage(UNIMAR_LOGO)
+        unimar_logo_label = ttk.Label(navbar, image=self.unimar_logo, style="Navbar.TLabel")
+        unimar_logo_label.grid(row=0, column=1, padx=(0, 15), sticky="w")
+
         reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload, style="Navbar.TButton")
-        reload_button.grid(row=0, column=1, sticky="w")
+        reload_button.grid(row=0, column=2, sticky="w")
 
         self.auth_button = ttk.Button(navbar, style="Navbar.TButton")
-        self.auth_button.grid(row=0, column=3, padx=(15, 0), sticky="e")
+        self.auth_button.grid(row=0, column=4, padx=(15, 0), sticky="e")
 
     def refresh_auth_button(self):
         if self.controller.logged_user:

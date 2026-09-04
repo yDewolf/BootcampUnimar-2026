@@ -40,7 +40,7 @@ def login_form(
     top_row.columnconfigure(1, weight=1)
     top_row.columnconfigure(2, weight=0)
     ttk.Button(top_row, text="Voltar", command=controller.back, style="Navbar.TButton").grid(row=0, column=0, sticky="w")
-    default_title(top_row, f"Codei - {title}", style="Navbar.TLabel").grid(row=0, column=1, sticky="ew")
+    default_title(top_row, f"Codei - {title}", style="Navbar.TLabel", font_name="consolas").grid(row=0, column=1, sticky="ew")
 
     form_frame = ttk.Frame(root_container, padding=20, width=250)
     form_frame.grid(column=0, row=1, sticky="n")
