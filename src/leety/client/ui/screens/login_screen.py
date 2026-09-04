@@ -19,7 +19,7 @@ class LoginScreen(MFrame[AppProtocol]):
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=0)
         
-        self.root = ttk.Frame(self, padding=10)
+        self.root = ttk.Frame(self)
         self.root.grid(column=0, row=0, sticky="nsew")
 
         self.root.columnconfigure(0, weight=1)

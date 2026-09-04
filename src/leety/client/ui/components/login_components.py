@@ -34,13 +34,13 @@ def login_form(
         except Exception as e:
             messagebox.showerror("Erro", f"Falha no {title}: {str(e)}")
 
-    top_row = ttk.Frame(root_container)
+    top_row = ttk.Frame(root_container, style="Navbar.TFrame", padding=(10, 5))
     top_row.grid(column=0, row=0, sticky="ew")
     top_row.columnconfigure(0, weight=0)
     top_row.columnconfigure(1, weight=1)
     top_row.columnconfigure(2, weight=0)
-    ttk.Button(top_row, text="Voltar", command=controller.back).grid(row=0, column=0, sticky="w")
-    default_title(top_row, f"Codei - {title}").grid(row=0, column=1, sticky="ew")
+    ttk.Button(top_row, text="Voltar", command=controller.back, style="Navbar.TButton").grid(row=0, column=0, sticky="w")
+    default_title(top_row, f"Codei - {title}", style="Navbar.TLabel").grid(row=0, column=1, sticky="ew")
 
     form_frame = ttk.Frame(root_container, padding=20, width=250)
     form_frame.grid(column=0, row=1, sticky="n")

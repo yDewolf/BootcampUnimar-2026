@@ -115,7 +115,11 @@ class MainScreen(MFrame[AppProtocol]):
 
         cols = DEFAULT_DIFF_COLUMNS
         for idx, diff in enumerate(difficulties):
-            card = diff_card(grid_container, diff, self.show_exercise_list)
+            assert diff.id
+            exercise_amount = len(self.controller.server.get_exercises(diff.id) or [])
+            if exercise_amount == 0:
+                exercise_amount = None
+            card = diff_card(grid_container, diff, self.show_exercise_list, exercise_amount)
             row = idx // cols
             col = idx % cols
 
@@ -272,7 +276,8 @@ class MainScreen(MFrame[AppProtocol]):
 def diff_card(
     parent: tk.Misc, 
     diff: ExerciseDifficulty, 
-    show_exercises: Callable[[ExerciseDifficulty], None]
+    show_exercises: Callable[[ExerciseDifficulty], None],
+    exercise_amount: Optional[int] = None,
 ) -> ttk.Frame:
     card = ttk.Frame(parent, padding=15, relief="groove")
     card.columnconfigure(0, weight=1)
@@ -280,7 +285,15 @@ def diff_card(
     card.rowconfigure(2, weight=2)
     card.rowconfigure(3, weight=0)
 
-    default_title(card, diff.capitalized_name, bold=True).grid(row=0, sticky="w")
+    title_frame = ttk.Frame(card)
+    title_frame.grid(row=0, sticky="we")
+    title_frame.columnconfigure(0, weight=1)
+    title_frame.columnconfigure(1, weight=0)
+    
+    default_title(title_frame, diff.capitalized_name, bold=True).grid(row=0, column=0, sticky="w")
+    if exercise_amount:
+        default_text(title_frame, f"({exercise_amount})", fontsize=9).grid(row=0, column=1, sticky="e")
+    
     description_txt = tk.Text(card, wrap="word", relief="flat", height=4)
     description_txt.insert(1.0, diff.description)
     description_txt.config(state="disabled")

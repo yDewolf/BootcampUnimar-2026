@@ -52,22 +52,22 @@ class ExerciseScreen(MFrame[AppProtocol]):
         self._see_attempts_button.config(state="normal")
 
     def _setup_widgets(self):
-        self.config(padding=10)
+        self.config()
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
-        self.header_frame = ttk.Frame(self)
+        self.header_frame = ttk.Frame(self, style="Navbar.TFrame", padding=(10, 5))
         self.header_frame.grid(row=0, column=0, sticky="ew")
         self.header_frame.columnconfigure(0, weight=0)
         self.header_frame.columnconfigure(1, weight=1)
 
-        ttk.Button(self.header_frame, text="Voltar", command=self.controller.back).grid(sticky="w", column=0, row=0, padx=(0, 10))
+        ttk.Button(self.header_frame, text="Voltar", command=self.controller.back, style="Navbar.TButton").grid(sticky="w", column=0, row=0, padx=(0, 10))
 
         self.content_container = ttk.Frame(self, padding=20)
         self.content_container.grid(row=1, column=0, sticky="nsew")
 
     def _render_exercise_header(self, exercise: ExerciseModel):
-        header_info_frame = ttk.Frame(self.header_frame)
+        header_info_frame = ttk.Frame(self.header_frame, style="Navbar.TFrame")
         header_info_frame.grid(column=1, row=0, sticky="we")
         header_info_frame.columnconfigure(0, weight=0)
         header_info_frame.columnconfigure(1, weight=1)
@@ -75,19 +75,20 @@ class ExerciseScreen(MFrame[AppProtocol]):
         if self.controller.is_admin():
             header_info_frame.columnconfigure(3, weight=0)
 
-        header_title = default_title(header_info_frame, text=f"Exercício #{exercise.id}")
+        header_title = default_title(header_info_frame, text=f"Exercício #{exercise.id}", style="Navbar.TLabel")
         header_title.grid(sticky="w", row=0, column=0)
 
-        separator = ttk.Separator(header_info_frame, orient="vertical")
-        separator.grid(row=0, column=1, sticky="ns", pady=5)
+        # default_text(header_info_frame, "", style="Navbar.TLabel").grid(row=0, column=1)
+        # separator = ttk.Separator(header_info_frame, orient="vertical")
+        # separator.grid(row=0, column=1, sticky="ns", pady=5)
 
         diff = self.controller.server.get_difficulty(exercise.diff_id)
         diff_name = diff.capitalized_name if diff else exercise.diff_id
-        header_diff = default_title(header_info_frame, text=f"Dificuldade: {diff_name}")
+        header_diff = default_title(header_info_frame, text=f"Dificuldade: {diff_name}", style="Navbar.TLabel")
         header_diff.grid(sticky="e", row=0, column=2)
 
         if self.controller.is_admin():
-            edit_button = ttk.Button(header_info_frame, text="Editar", command=self._handle_admin_edit)
+            edit_button = ttk.Button(header_info_frame, text="Editar", command=self._handle_admin_edit, style="Navbar.TButton")
             edit_button.grid(sticky="e", row=0, column=3, padx=(10, 0))
 
     def _render_exercise_details(self):
