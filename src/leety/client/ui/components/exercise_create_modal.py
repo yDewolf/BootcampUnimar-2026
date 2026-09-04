@@ -10,6 +10,7 @@ from leety.client.ui.components.modals import CenterableModal
 from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseModel
 from leety.common.database.db_exceptions import InvalidCodeException
+from leety.client.ui.components.wait_thread_modal import WaitThreadModal
 
 class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
     exercise_id: Optional[int] = None
@@ -24,6 +25,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
 
     context_txt: tk.Text
     sample_gen_path: Optional[Path] = None
+    is_exercise_valid: tk.StringVar
 
     deleted_exercise: bool = False
 
@@ -44,8 +46,12 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         self.title_var = tk.StringVar(value=exercise.title if exercise else None)
         self.time_limit_var = tk.DoubleVar(value=exercise.time_limit if exercise else None)
         self.memory_limit_var = tk.IntVar(value=exercise.memory_limit if exercise else None)
+        self.is_exercise_valid = tk.StringVar(value=f"{'✅' if exercise.is_valid else '❎'}" if exercise else '?')
 
         self._setup_widgets()
+
+    def _update_exercise_valid(self):
+        self.is_exercise_valid.set(f"{'✅' if self.exercise.is_valid else '❎'}" if self.exercise else '?')
 
     def _setup_widgets(self):
         self.grid()
@@ -106,18 +112,19 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         default_title(form_content, text="Código", bold=True).pack(anchor="w")
         code_grid = ttk.Frame(form_content)
         code_grid.columnconfigure(0, weight=0)
-        code_grid.columnconfigure(1, weight=1)
+        code_grid.columnconfigure(1, weight=2)
         code_grid.columnconfigure(2, weight=0)
+        code_grid.columnconfigure(3, weight=1)
         
         default_text(code_grid, "Código do exercício").grid(column=0, row=0, pady=5, sticky="w", padx=(0, 10))
         ttk.Button(code_grid, text="Selecionar Arquivo", command=self._select_sample_gen_path).grid(row=0, column=1, sticky="w")
-         # TODO: botão de download do código do exercício
+        default_text(code_grid, "", textvariable=self.is_exercise_valid).grid(row=0, column=2, sticky="w", padx=10)
         if not self.is_editing():
-            ttk.Button(code_grid, text="Criar Modelo", command=self._create_exercise_template).grid(row=0, column=2, sticky="w")
+            ttk.Button(code_grid, text="Criar Modelo", command=self._create_exercise_template).grid(row=0, column=3, sticky="we")
 
         else:
             ttk.Button(code_grid, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
-            ttk.Button(code_grid, text="Baixar exercício", command=self._handle_exercise_download).grid(row=0, column=2, sticky="w")
+            ttk.Button(code_grid, text="Baixar exercício", command=self._handle_exercise_download).grid(row=0, column=3, sticky="w")
 
         code_grid.pack(fill="x")
 
@@ -137,6 +144,8 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         if self.is_editing():
             delete_button = ttk.Button(buttons_frame, text="Excluir exercício", command=self._handle_delete_action)
             delete_button.grid(row=0, column=2, sticky="e")
+        else:
+            default_text(buttons_frame, text="Nota: O código será validado após salvar o exercício", fontsize=9).grid(row=0, column=2, sticky="we")
 
     # TODO:
     def _handle_exercise_download(self):
@@ -207,6 +216,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             
             if model.id:
                 exercise_data = self.controller.server.get_exercise(model.id)
+                assert exercise_data, "O Exercício não foi indexado corretamente"
                 if not exercise_data.is_valid:
                     raise InvalidCodeException("O código do exercício é inválido. Edite o exercício e atualize o código para corrigir.\nAs outras alterações serão salvas normalmente")
         
@@ -215,7 +225,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             if isinstance(e, InvalidCodeException):
                 self.destroy()
 
-        
+        self._update_exercise_valid()
         if successful:
             messagebox.showinfo("Sucesso", f"O exercício foi {"criado" if not self.is_editing() else "editado"} com sucesso!")
             self.destroy()
@@ -231,7 +241,14 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         
         file_contents = self._load_sample_gen()
         exercise = ExerciseModel(_sample_gen_code=file_contents, **model.get_data(raw=True))
-        successful, id = self.controller.server.create_exercise(self.controller.logged_user, exercise)
+        successful, id = WaitThreadModal.execute(
+            self, 
+            self.controller,
+            self.controller.server.create_exercise,
+            (self.controller.logged_user, exercise),
+            title="Criando Exercício",
+            message="O exercício está sendo validado, por favor aguarde..."
+        )
         return successful
 
     def _edit_exercise(self, exercise: BaseExerciseModel) -> bool:
@@ -283,10 +300,21 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             if not file_contents:
                 raise Exception("Não foi possível ler os conteúdos do arquivo")
 
-            self.controller.server.upload_sample_gen_code(self.controller.logged_user, self.exercise_id, file_contents)
+            is_valid = WaitThreadModal.execute(
+                parent=self,
+                controller=self.controller,
+                target_func=self.controller.server.upload_sample_gen_code,
+                args=(self.controller.logged_user, self.exercise_id, file_contents),
+                title="Enviando Exercício",
+                message="Enviando e validando o código do exercício..."
+            )
+            if not is_valid:
+                raise InvalidCodeException("O código do exercício não é válido")
 
         except Exception as e:
-            messagebox.showerror("Algo deu errado", f"Não foi possível atualizar o código do exercício: {e}")
+            messagebox.showerror("Algo deu errado", f"Não foi possível atualizar o código do exercício:\n\n{e}")
+
+        self._update_exercise_valid()
 
     def _select_sample_gen_path(self):
         file_path = filedialog.askopenfilename(
@@ -296,6 +324,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
         if not file_path:
             return
 
+        self.is_exercise_valid.set("...")
         self.sample_gen_path = Path(file_path)
 
     def _load_sample_gen(self) -> Optional[str]:
