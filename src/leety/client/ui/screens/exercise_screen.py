@@ -43,7 +43,10 @@ class ExerciseScreen(MFrame[AppProtocol]):
         super().tkraise(*args, **kwargs)
 
     def refresh_buttons(self):
-        if not self.controller.logged_user:
+        if not self.current_exercise:
+            return
+
+        if not self.controller.logged_user or not self.current_exercise.is_valid:
             self._submit_button.config(state="disabled")
             self._see_attempts_button.config(state="disabled")
             return
@@ -104,9 +107,17 @@ class ExerciseScreen(MFrame[AppProtocol]):
         
         self._render_exercise_header(exercise)
         exercise_header = ttk.Frame(self.content_container)
-        exercise_header.pack(anchor="w", pady=(0, 10))
-        title_label = default_title(exercise_header, text=exercise.title, bold=True)
-        title_label.pack(anchor="w")
+        exercise_header.pack(anchor="w", fill="x")
+
+        title_frame = ttk.Frame(exercise_header)
+        title_frame.columnconfigure(0, weight=1)
+        title_frame.columnconfigure(1, weight=0)
+        title_label = default_title(title_frame, text=exercise.title, bold=True)
+        title_label.grid(row=0, column=0, sticky="we")
+        
+        if not self.current_exercise.is_valid:
+            default_text(title_frame, "Nota: Esse exercício é inválido, corrija editando-o", fontsize=9).grid(row=0, column=1, sticky="e")
+        title_frame.pack(anchor="w", fill="x", pady=(0, 10))
 
         author_names: list[str] = []
         for id in (exercise.contributors or [exercise.author_id]):

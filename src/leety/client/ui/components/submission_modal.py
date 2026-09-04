@@ -49,7 +49,7 @@ class SubmissionModal(CenterableModal, MFrame[AppProtocol]):
         previous_attempts = self.controller.server.get_user_attempts(self.controller.logged_user.id, exercise.id)
         self.current_attempt = len(previous_attempts) + 1
         self._local_attempt = 1
-        super().__init__(parent, "500x600")
+        super().__init__(parent, "500x500")
         
         self.title(f"Submissão Exercício #{exercise.id}")
         self._setup_widgets()
