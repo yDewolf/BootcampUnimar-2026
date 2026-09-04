@@ -1,8 +1,10 @@
 import tkinter as tk
 
+from leety.client.ui.ui_style import COLOR_BG
+
 class CenterableModal(tk.Toplevel):
     def __init__(self, parent: tk.Misc, geometry: str):
-        super().__init__(parent)
+        super().__init__(parent, bg=COLOR_BG)
         self.geometry(geometry)
         top_window = parent.winfo_toplevel()
         self.transient(top_window)

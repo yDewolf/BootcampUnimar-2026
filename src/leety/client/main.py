@@ -10,6 +10,7 @@ from leety.client.ui.screens.login_screen import LoginScreen
 from leety.client.ui.screens.profile_screen import ProfileScreen
 from leety.client.ui.screens.register_screen import RegisterScreen
 from leety.client.ui.screens.main_screen import MainScreen
+from leety.client.ui.ui_style import apply_global_styles
 from leety.server.server import Server
 
 # nome provisório btw
@@ -28,6 +29,7 @@ class AppRoot(tk.Tk, AppProtocol):
         self._cfg_path = cfg_path
         self._load_cfg()
         super().__init__()
+        apply_global_styles(self)
         self._setup_root()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         self._setup_frames(frames, default_frame)

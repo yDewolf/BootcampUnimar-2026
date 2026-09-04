@@ -39,14 +39,14 @@ class MainScreen(MFrame[AppProtocol]):
         self.rowconfigure(2, weight=1) # conteúdo
         self.setup_navbar()
 
-        separator = ttk.Separator(self, orient="horizontal")
-        separator.grid(row=1, column=0, sticky="ew", pady=(5, 0))
+        # separator = ttk.Separator(self, orient="horizontal")
+        # separator.grid(row=1, column=0, sticky="ew", pady=(5, 0))
 
         self.content_frame = ttk.Frame(self, padding=20)
         self.content_frame.grid(row=2, column=0, sticky="nsew")
 
     def setup_navbar(self):
-        navbar = ttk.Frame(self, padding=(10, 5))
+        navbar = ttk.Frame(self, padding=(10, 5), style="Navbar.TFrame")
         navbar.grid(row=0, column=0, sticky="ew")
 
         navbar.columnconfigure(0, weight=0)
@@ -54,13 +54,13 @@ class MainScreen(MFrame[AppProtocol]):
         navbar.columnconfigure(2, weight=1)
         navbar.columnconfigure(3, weight=0)
 
-        brand_label = default_title(navbar, text="Codei")
+        brand_label = default_title(navbar, text="Codei", style="Navbar.TLabel")
         brand_label.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
-        reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload)
+        reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload, style="Navbar.TButton")
         reload_button.grid(row=0, column=1, sticky="w")
 
-        self.auth_button = ttk.Button(navbar)
+        self.auth_button = ttk.Button(navbar, style="Navbar.TButton")
         self.auth_button.grid(row=0, column=3, padx=(15, 0), sticky="e")
 
     def refresh_auth_button(self):
@@ -341,6 +341,6 @@ def exercise_row(
     ttk.Button(button_frame, text="Ver Exercício", command=lambda: access_exercise(exercise)).pack(side="right")
 
     if is_admin:
-        ttk.Button(button_frame, text="Editar", command=lambda: edit_exercise(exercise)).pack(side="right")
+        ttk.Button(button_frame, text="Editar", command=lambda: edit_exercise(exercise)).pack(side="right", padx=(0, 5))
 
     return row_frame

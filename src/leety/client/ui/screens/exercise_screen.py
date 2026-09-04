@@ -52,7 +52,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
         self._see_attempts_button.config(state="normal")
 
     def _setup_widgets(self):
-        self.config(padx=10, pady=10)
+        self.config(padding=10)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
 
@@ -61,7 +61,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
         self.header_frame.columnconfigure(0, weight=0)
         self.header_frame.columnconfigure(1, weight=1)
 
-        ttk.Button(self.header_frame, text="Voltar", command=self.controller.back).grid(sticky="w", column=0, row=0)
+        ttk.Button(self.header_frame, text="Voltar", command=self.controller.back).grid(sticky="w", column=0, row=0, padx=(0, 10))
 
         self.content_container = ttk.Frame(self, padding=20)
         self.content_container.grid(row=1, column=0, sticky="nsew")
@@ -88,7 +88,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
 
         if self.controller.is_admin():
             edit_button = ttk.Button(header_info_frame, text="Editar", command=self._handle_admin_edit)
-            edit_button.grid(sticky="e", row=0, column=3)
+            edit_button.grid(sticky="e", row=0, column=3, padx=(10, 0))
 
     def _render_exercise_details(self):
         for widget in self.content_container.winfo_children():
@@ -160,7 +160,7 @@ class ExerciseScreen(MFrame[AppProtocol]):
         template_buton = ttk.Button(exercise_actions, text="Criar solução", command=self._create_solution_template)
         template_buton.grid(sticky="w", row=0, column=0)
         self._submit_button = ttk.Button(exercise_actions, text="Enviar solução", command=self._submit_solution)
-        self._submit_button.grid(sticky="e", row=0, column=1)
+        self._submit_button.grid(sticky="e", row=0, column=1, padx=10)
 
         self._see_attempts_button = ttk.Button(exercise_actions, text="Ver tentativas", command=self._check_attempts)
         self._see_attempts_button.grid(sticky="e", row=0, column=2)

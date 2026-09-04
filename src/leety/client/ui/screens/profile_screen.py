@@ -56,18 +56,18 @@ class ProfileScreen(MFrame[AppProtocol]):
         self.header_frame.grid(row=0, column=0, sticky="ew")
 
         header_bar = ttk.Frame(self.header_frame)
-        header_bar.pack(anchor="n", fill="x")
+        header_bar.pack(anchor="n", fill="x", pady=(0, 10))
         header_bar.columnconfigure(0, weight=0)
         header_bar.columnconfigure(1, weight=1)
         header_bar.columnconfigure(2, weight=0)
 
-        ttk.Button(header_bar, text="Voltar", command=self.controller.back).grid(row=0, column=0, sticky="w")
+        ttk.Button(header_bar, text="Voltar", command=self.controller.back).grid(row=0, column=0, sticky="w", padx=(0, 10))
         default_title(header_bar, textvariable=self.title_var, text="", bold=True).grid(row=0, column=1, sticky="ew")
 
         actions_frame = ttk.Frame(header_bar)
         actions_frame.grid(row=0, column=2, sticky="we")
         ttk.Button(actions_frame, text="Editar", command=self._handle_edit).grid(row=0, column=0)
-        ttk.Button(actions_frame, text="Sair", command=self._handle_logout).grid(row=0, column=1)
+        ttk.Button(actions_frame, text="Sair", command=self._handle_logout).grid(row=0, column=1, padx=(10, 0))
 
         self.lbl_total_solved = default_text(self.header_frame, "Exercícios Resolvidos: Carregando...")
         self.lbl_total_solved.pack(anchor="w")

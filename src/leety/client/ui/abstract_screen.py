@@ -1,3 +1,4 @@
+from tkinter import ttk
 import tkinter as tk
 from typing import Protocol
 
@@ -8,7 +9,7 @@ class ScreenManagerProtocol(Protocol):
     def forward(self): pass
     def back(self): pass
 
-class MFrame[controllerType: ScreenManagerProtocol](tk.Frame):
+class MFrame[controllerType: ScreenManagerProtocol](ttk.Frame):
     controller: controllerType
     def __init__(self, parent: tk.Misc, controller: controllerType):
         super().__init__(parent)
