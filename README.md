@@ -46,3 +46,20 @@ As principais classes do banco são:
 - **[Database](src/leety/common/internals/database/csvbase.py):** é uma classe semelhante ao `FieldModel` no que tange a funcionalidades, basicamente ela **armazena tabelas** que são descritas em subclasses (que herdam `_Database`).
 ###### (`SearchableField` é uma classe que não implementa nada e só é usada para checar se um `Field` deve ser indexado como "pesquisável") 
 
+#### Implementação do "Servidor":
+Inicialmente eu gostaria de implementar um sistema 100% backend, sem interface alguma, mas que expusesse uma API Restful HTTP para que _clients_ pudessem acessar e modificar as coisas. 
+###### É por isso que tem um [RouterProtocol](src/leety/server/internal/router_protocol.py) na pasta server. A ideia era implementar um "Router" que receberia as requisições HTTP e mapearia para as funções.
+###### No fim das contas o [Server](src/leety/server/server.py) virou o Router, só que ele é acessado diretamente pelo [Client](src/leety//client/main.py) como um "servidor interno".
+Por conta do prazo, eu acabei desistindo dessa ideia da API e acabei implementando a interface com o tkinter e tudo mais.
+O que é relevante sobre o servidor é a implementação do "sandbox" e os controllers.
+#### "[Sandbox](src/leety/server/sandbox/sandbox_controller.py)":
+A minha implementação de um ambiente "Sandbox" é na verdade só uma pasta separada para os códigos rodarem dentro. Não existe nenhuma medida de segurança para evitar que os códigos acessem informações sigilosas ou qualquer façam qualquer coisa com o seu sistema.
+A ideia inicial era tentar implementar isso usando containers do Docker, mas não era muito escalável e ia levar tempo porque eu não sei usar Docker direito, então acabou que eu desisti das medidas de segurança e foquei mais em implementar as funcionalidades de rodar códigos etc (veja [CodeRunner](src/leety/common/utils/code_runner.py)).
+
+
+#### Controllers:
+Os controllers aqui são só classes usadas para isolar o funcionamento de algumas tabelas específicas. Como não deu tempo de implementar um sistema decente de relacionamento entre as tabelas, algumas partes do código é só implementando "relacionamentos" (atualizações dinâmicas) manualmente (atualizar em toda ação que modifica algo).
+Os principais controllers são:
+- **[ExerciseController](src/leety/server/exercise/exercise_controller.py)**: que lida com o CRUD dos exercícios, além da geração de samples e outras coisas relacionadas à exercícios;
+- **[SolutionController](src/leety/server/exercise/solution_controller.py)**: lida com o "CRUD" das soluções, que é mais um CR do que CRUD. Nela tem funções para enviar as tentativas e validá-las.
+- **[UserController](src/leety/server/user/user_controller.py)**: lida com o CRUD de usuários e outras funções utilitárias como `is_admin`, `is_username_registered` e `log_as_user` (que retorna os dados do usuário caso o usuário e senha estejam corretos)
