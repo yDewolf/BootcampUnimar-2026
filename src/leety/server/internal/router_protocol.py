@@ -30,6 +30,8 @@ class RouterProtocol(Protocol):
     def get_exercise(self, exercise_id: int) -> Optional[ExerciseModel]: raise NotImplementedError()
 
     def get_exercise_template(self, exercise_id: int) -> str: raise NotImplementedError()
+    def get_exercise_code(self, exercise_id: int) -> Optional[str]: raise NotImplementedError()
+
 
     def create_exercise(self, admin_user: UserModel, exercise_data: ExerciseModel) -> tuple[bool, int]: raise NotImplementedError()
     def modify_exercise(self, admin_user: UserModel, exercise_id: int, new_data: BaseExerciseModel) -> bool: raise NotImplementedError()

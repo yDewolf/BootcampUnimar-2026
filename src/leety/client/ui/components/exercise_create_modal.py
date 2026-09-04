@@ -117,6 +117,7 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
 
         else:
             ttk.Button(code_grid, text="Atualizar Arquivo de Exercício", command=self._upload_new_sample_gen).grid(row=0, column=1, sticky="w")
+            ttk.Button(code_grid, text="Baixar exercício", command=self._handle_exercise_download).grid(row=0, column=2, sticky="w")
 
         code_grid.pack(fill="x")
 
@@ -137,6 +138,36 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             delete_button = ttk.Button(buttons_frame, text="Excluir exercício", command=self._handle_delete_action)
             delete_button.grid(row=0, column=2, sticky="e")
 
+    # TODO:
+    def _handle_exercise_download(self):
+        if not self.exercise:
+            return
+        
+        assert self.exercise.id
+        file_path = filedialog.asksaveasfilename(
+            title="Selecione onde salvar o exercício",
+            filetypes=[(".py", "*.py")],
+            defaultextension=".py",
+            # FIXME: trocar esse path
+            initialdir=str(self.controller.solutions_path),
+            initialfile=f"ex_{self.exercise.id}-gen"
+        )
+
+        if not file_path:
+            return
+
+        path = Path(file_path)
+        file_contents = self.controller.server.get_exercise_code(self.exercise.id)
+        if not file_contents:
+            return
+
+        path.write_text(file_contents, encoding="utf-8")
+        self.sample_gen_path = path
+
+        auto_open = messagebox.askyesno("Abrir arquivo?", "Abrir exercício no editor de texto padrão?")
+        if auto_open:
+            os.startfile(file_path)
+    
     def _handle_delete_action(self):
         if not self.exercise:
             return
@@ -177,10 +208,10 @@ class ExerciseCreateModal(CenterableModal, MFrame[AppProtocol]):
             if model.id:
                 exercise_data = self.controller.server.get_exercise(model.id)
                 if not exercise_data.is_valid:
-                    raise InvalidCodeException("O código do exercício é inválido, isso pode ser corrigido editando o exercício através da lista de exercícios")
+                    raise InvalidCodeException("O código do exercício é inválido. Edite o exercício e atualize o código para corrigir.\nAs outras alterações serão salvas normalmente")
         
         except Exception as e:
-            messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o exercício:\n{e}")
+            messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o exercício:\n\n{e}")
             if isinstance(e, InvalidCodeException):
                 self.destroy()
 

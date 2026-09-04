@@ -1,6 +1,6 @@
 id,diff_id,author_id,contributors,title,context,time_limit,memory_limit,benchmark_time,benchmark_samples,is_valid
 1,easy,,[1],test,"Dois valores inteiros serão passados, o resultado deve ser a soma deles.",90.02,16,1.2889206000836566,50,True
 2,medium,1,[],Teste,Subtração entre dois números inteiros,90.0,16,0.0,,False
-3,medium,1,[],Test2,,10.0,10,0.0,,False
+3,medium,1,[1],Test2,,10.0,10,0.0,,False
 4,easy,1,[1],Exercício Teste,"Olá, eu sou um exercício de teste e você deve fazer uma subtraçao simples entre dois valores para atingir o resultado correto",30.0,16,1.248744200100191,50,False
 5,hard,1,[],oi,oi			,2.0,10,1.2362175999442115,50,True
