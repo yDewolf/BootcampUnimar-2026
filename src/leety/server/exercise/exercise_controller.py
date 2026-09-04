@@ -179,7 +179,7 @@ class ExerciseController:
             raise Exception(f"Exercise of id {exercise_id} doesn't isn't registered in database")
 
         sample_path = self.exercise_sample_path(exercise_id)
-        if self.exercise_has_samples(exercise_id):
+        if not self.exercise_has_samples(exercise_id):
             if not generate_samples_if_none:
                 raise Exception(f"Couldn't find samples for exercise #{exercise_id} in {sample_path}")
             else:

@@ -47,7 +47,11 @@ class ScreenManager(ScreenManagerProtocol):
             self._update_current_screen(idx)
 
     def _update_current_screen(self, new_idx: int):
-        self._previous_frame = self._frame_order[self._current_frame_idx]
+        if self._current_frame_idx < len(self._frame_order):
+            self._previous_frame = self._frame_order[self._current_frame_idx]
+        else:
+            self._previous_frame = None
+        
         frame = self._frame_order[new_idx]
         self._current_frame_idx = new_idx
         frame.tkraise()

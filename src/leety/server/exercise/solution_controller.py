@@ -24,7 +24,7 @@ class SolutionController:
     # Attempt CRUD:
     def submit_attempt(self, user_id: int, exercise_id: int, attempt_code: str) -> tuple[bool, AttemptResult]:
         user_data, exercise_data = self._ensure_user_and_exercise(user_id, exercise_id)
-        samples = self.exercise_controller.load_samples(exercise_id)
+        samples = self.exercise_controller.load_samples(exercise_id, generate_samples_if_none=True)
         if not samples:
             raise Exception(f"Missing samples for exercise #{exercise_id}")
         
@@ -145,4 +145,4 @@ class SolutionController:
         return self.exercise_controller._get_exercise_folder(exercise_id) / "attempts"
 
     def attempt_filename(self, user_id: int, exercise_id: int, attempt_id: int) -> Path:
-        return self.exercise_attempts_folder(exercise_id) / f"attempt_usr{user_id}_att{attempt_id}.py"
+        return self.exercise_attempts_folder(exercise_id) / f"attempt_{attempt_id}_usr{user_id}.py"

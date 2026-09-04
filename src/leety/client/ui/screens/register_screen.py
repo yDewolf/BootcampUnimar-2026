@@ -37,7 +37,7 @@ class RegisterScreen(MFrame[AppProtocol]):
             raise Exception(f"Não foi possível logar como {username}")
 
         messagebox.showinfo("Sucesso", "Usuário cadastrado")
-        self.controller.back()
+        self.controller.change_to_screen(ScreenNames.MAIN.value)
 
     def _go_to_login(self):
         self.controller.change_to_screen(ScreenNames.LOGIN.value)

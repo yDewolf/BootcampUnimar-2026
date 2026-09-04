@@ -1,2 +1,4 @@
 id,username,password,is_admin
 1,yDewolf,123457,True
+2,TestUser,TestUser,False
+3,user,user_password,False
