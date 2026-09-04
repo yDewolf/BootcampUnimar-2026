@@ -85,3 +85,9 @@ Os principais controllers são:
 - **[ExerciseController](src/leety/server/exercise/exercise_controller.py)**: que lida com o CRUD dos exercícios, além da geração de samples e outras coisas relacionadas à exercícios;
 - **[SolutionController](src/leety/server/exercise/solution_controller.py)**: lida com o "CRUD" das soluções, que é mais um CR do que CRUD. Nela tem funções para enviar as tentativas e validá-las.
 - **[UserController](src/leety/server/user/user_controller.py)**: lida com o CRUD de usuários e outras funções utilitárias como `is_admin`, `is_username_registered` e `log_as_user` (que retorna os dados do usuário caso o usuário e senha estejam corretos)
+
+### Comentários finais:
+Gostaria de adicionar no fim desse readme minhas opiniões finais sobre o projeto e o evento.
+Esse ano, infelizmente, não pudi participar de todas as aulas devido a motivos pessoais o que tornou o processo de desenvolvimento bem caótico. Uma das consequências disso foi eu descobrir sobre o uso do `tkinter` na segunda-feira (31/08), faltando praticamente 3 dias para a data de entrega, então foi bem difícil organizar meu tempo para finalizar o projeto. 
+Felizmente, foi possível finalizar praticamente tudo que eu de fato gostaria de implementar.
+No fim eu fiquei bem satisfeito com o projeto em praticamente todos os aspectos, o que eu melhoraria seria a interface e a organização dos arquivos do client e provavelmente a segurança do meu sistema de "sandbox".

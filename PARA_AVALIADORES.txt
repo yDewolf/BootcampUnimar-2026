@@ -4,4 +4,5 @@ tempo porque daria mais de 10 minutos de vídeo.
 Caso esteja interessado em entender o funcionamento interno do projeto, 
 recomendo que leia a "documentação" que eu escrevi no README.md
 
+Repositório do Github: https://github.com/yDewolf/BootcampUnimar-2026
 Vídeo demonstrando o projeto: https://www.youtube.com/watch?v=Uf1xk5vxqkM
