@@ -13,7 +13,7 @@ from leety.client.ui.screens.main_screen import MainScreen
 from leety.server.server import Server
 
 # nome provisório btw
-APP_NAME = "Leety"
+APP_NAME = "Codei"
 DEFAULT_SIZE = (640, 480)
 DEFAULT_SOLUTION_PATH = Path(__file__).resolve().parent.parent.parent.parent / "solutions"
 
@@ -37,7 +37,7 @@ class AppRoot(tk.Tk, AppProtocol):
 
 
     def _setup_root(self):
-        self.title(APP_NAME)
+        self.title(APP_NAME + " - Bootcamp Unimar 2026")
         self.geometry(f"{DEFAULT_SIZE[0]}x{DEFAULT_SIZE[1]}")
         self.minsize(DEFAULT_SIZE[0] // 2, DEFAULT_SIZE[1] // 2)
 

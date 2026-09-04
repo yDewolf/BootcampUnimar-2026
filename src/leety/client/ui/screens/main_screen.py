@@ -50,7 +50,7 @@ class MainScreen(MFrame[AppProtocol]):
         # navbar.columnconfigure(1, weight=1) # barra de pesquisa
         navbar.columnconfigure(3, weight=0) # perfil
 
-        brand_label = default_title(navbar, text="leety")
+        brand_label = default_title(navbar, text="Codei")
         brand_label.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
         reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload)
