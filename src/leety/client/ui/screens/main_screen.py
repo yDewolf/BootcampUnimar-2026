@@ -1,3 +1,4 @@
+import math
 import tkinter as tk
 from tkinter import ttk
 from typing import Callable, Optional
@@ -11,12 +12,17 @@ from leety.client.ui.ui_components import default_text, default_title
 from leety.common.database.models.exercise_model import ExerciseDifficulty, ExerciseModel
 
 DEFAULT_DIFF_COLUMNS = 3
+ITEMS_PER_PAGE = 5
+
 class MainScreen(MFrame[AppProtocol]):
     search_var: tk.StringVar
     content_frame: ttk.Frame
 
     auth_button: ttk.Button
     current_diff: Optional[ExerciseDifficulty] = None
+
+    current_page: int = 1
+    items_per_page: int = ITEMS_PER_PAGE
 
     def __init__(self, parent: tk.Misc, controller: AppProtocol):
         super().__init__(parent, controller)
@@ -39,26 +45,21 @@ class MainScreen(MFrame[AppProtocol]):
         self.content_frame = ttk.Frame(self, padding=20)
         self.content_frame.grid(row=2, column=0, sticky="nsew")
 
-    # TODO: separar isso aqui em um componente
     def setup_navbar(self):
         navbar = ttk.Frame(self, padding=(10, 5))
         navbar.grid(row=0, column=0, sticky="ew")
 
-        navbar.columnconfigure(0, weight=0) # 'logo' da plataforam
+        navbar.columnconfigure(0, weight=0)
         navbar.columnconfigure(1, weight=0)
         navbar.columnconfigure(2, weight=1)
-        # navbar.columnconfigure(1, weight=1) # barra de pesquisa
-        navbar.columnconfigure(3, weight=0) # perfil
+        navbar.columnconfigure(3, weight=0)
 
         brand_label = default_title(navbar, text="Codei")
         brand_label.grid(row=0, column=0, padx=(0, 15), sticky="w")
 
         reload_button = ttk.Button(navbar, text="Recarregar", command=self._reload)
         reload_button.grid(row=0, column=1, sticky="w")
-        # search_entry = ttk.Entry(navbar, textvariable=self.search_var)
-        # search_entry.grid(row=0, column=1, sticky="ew", padx=10)
-        # search_entry.insert(0, "Pesquise exercícios aqui !!")
-        
+
         self.auth_button = ttk.Button(navbar)
         self.auth_button.grid(row=0, column=3, padx=(15, 0), sticky="e")
 
@@ -69,7 +70,7 @@ class MainScreen(MFrame[AppProtocol]):
                 command=self._go_to_profile
             )
             return
-        
+
         self.auth_button.config(
             text="Login",
             command=self._go_to_login
@@ -80,24 +81,26 @@ class MainScreen(MFrame[AppProtocol]):
         if not isinstance(self.controller._previous_frame, ExerciseScreen):
             self.show_difficulties_grid()
         elif self.current_diff:
-            self.show_exercise_list(self.current_diff)
+            self.show_exercise_list(self.current_diff, page=self.current_page)
 
         super().tkraise(*args, **kwargs)
-
 
     def _clear_content(self):
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
-
     def show_difficulties_grid(self):
         self.current_diff = None
+        self.current_page = 1
         self._clear_content()
 
         info_container = ttk.Frame(self.content_frame)
         title_label = default_title(info_container, "Selecione uma dificuldade")
         title_label.pack(anchor="w")
-        subtitle_label = default_text(info_container, f"Exercícios indexados: {len(self.controller.server.get_all_exercises())}")
+        subtitle_label = default_text(
+            info_container, 
+            f"Exercícios indexados: {len(self.controller.server.get_all_exercises())}"
+        )
         subtitle_label.pack(anchor="w")
         info_container.pack(anchor="w", pady=(0, 10))
 
@@ -119,10 +122,10 @@ class MainScreen(MFrame[AppProtocol]):
             card.grid(row=row, column=col, padx=10, pady=10, sticky="nsew")
             grid_container.columnconfigure(col, weight=1)
 
-
-    def show_exercise_list(self, difficulty: ExerciseDifficulty):
+    def show_exercise_list(self, difficulty: ExerciseDifficulty, page: int = 1):
         assert difficulty.id
         self.current_diff = difficulty
+        self.current_page = page
         self._clear_content()
 
         header_frame = ttk.Frame(self.content_frame)
@@ -134,59 +137,119 @@ class MainScreen(MFrame[AppProtocol]):
             ttk.Button(header_frame, text="Criar Exercício", command=self._create_new_exercise).pack(side="right")
 
         try:
-            exercises = self.controller.server.get_exercises(difficulty.id)
+            raw_exercises = self.controller.server.get_exercises(difficulty.id)
         except Exception as e:
             default_text(self.content_frame, text=f"Erro ao carregar exercícios: {e}").pack()
             return
 
+        is_admin = self.controller.is_admin()
+        exercises = [
+            ex for ex in raw_exercises 
+            if ex.is_valid or is_admin
+        ]
+
         if not exercises:
             default_text(self.content_frame, text="Nenhum exercício encontrado para esta dificuldade").pack(pady=20)
             return
+
+        total_items = len(exercises)
+        total_pages = math.ceil(total_items / self.items_per_page)
+        self.current_page = max(1, min(self.current_page, total_pages))
+
+        start_idx = (self.current_page - 1) * self.items_per_page
+        end_idx = start_idx + self.items_per_page
+        paginated_exercises = exercises[start_idx:end_idx]
 
         list_container = ttk.Frame(self.content_frame)
         list_container.pack(fill="both", expand=True)
 
         exercise_headers = ttk.Frame(list_container, padding=(5, 5))
         exercise_headers.pack(fill="x")
-        exercise_headers.columnconfigure(0, weight=0) # is_done
-        exercise_headers.columnconfigure(1, weight=2) # Título
-        exercise_headers.columnconfigure(2, weight=1) # Autor
-        exercise_headers.columnconfigure(3, weight=0) # botões
+        
+        exercise_headers.columnconfigure(0, weight=0) # Status Resolvido
+        if is_admin:
+            exercise_headers.columnconfigure(1, weight=1) # Status do exercício
+            exercise_headers.columnconfigure(2, weight=3) # Título
+            exercise_headers.columnconfigure(3, weight=2) # Autor
+            exercise_headers.columnconfigure(4, weight=2) # Ações
+        else:
+            exercise_headers.columnconfigure(1, weight=3) # Título
+            exercise_headers.columnconfigure(2, weight=2) # Autor
+            exercise_headers.columnconfigure(3, weight=1) # Ações
 
-        default_text(exercise_headers, "").grid(row=0, column=0, sticky="w")
-        default_text(exercise_headers, "Título").grid(row=0, column=1, sticky="w")
-        default_text(exercise_headers, "Autor").grid(row=0, column=2, sticky="w")
-        default_text(exercise_headers, "").grid(row=0, column=3, sticky="w")
+        default_text(exercise_headers, "").grid(row=0, column=0)
+        col_offset = 0
+        if is_admin:
+            default_text(exercise_headers, "Status").grid(row=0, column=1)
+            col_offset = 1
+
+        default_text(exercise_headers, "Título").grid(row=0, column=1 + col_offset, sticky="w")
+        default_text(exercise_headers, "Autor").grid(row=0, column=2 + col_offset)
+        default_text(exercise_headers, "Ações").grid(row=0, column=3 + col_offset)
 
         ttk.Separator(list_container, orient="horizontal").pack(fill="x", pady=2)
 
-        for exercise in exercises:
-            if not exercise.is_valid and not self.controller.is_admin(): 
-                continue
-
+        for exercise in paginated_exercises:
             author_name: str = "Desconhecido"
             if exercise.author_id:
                 author = self.controller.server.get_user_data(exercise.author_id)
                 author_name = author.username if author else author_name
-            
-            exercise_row(self.controller, list_container, exercise, author_name, self._access_exercise, self._edit_exercise)
+
+            exercise_row(
+                self.controller, 
+                list_container, 
+                exercise, 
+                author_name, 
+                self._access_exercise, 
+                self._edit_exercise
+            )
             ttk.Separator(list_container, orient="horizontal").pack(fill="x")
-            
+
+        pagination_wrapper = ttk.Frame(self.content_frame, padding=(0, 15, 0, 0))
+        pagination_wrapper.pack(fill="x", side="bottom")
+
+        pagination_controls = ttk.Frame(pagination_wrapper)
+        pagination_controls.pack(anchor="center")
+
+        prev_button = ttk.Button(
+            pagination_controls, 
+            text="< Anterior", 
+            command=lambda: self.show_exercise_list(difficulty, self.current_page - 1),
+            state="normal" if self.current_page > 1 else "disabled"
+        )
+        prev_button.pack(side="left")
+
+        page_info = default_text(pagination_controls, f"{self.current_page}/{total_pages}")
+        page_info.pack(side="left", padx=15)
+
+        next_button = ttk.Button(
+            pagination_controls, 
+            text="Próxima >", 
+            command=lambda: self.show_exercise_list(difficulty, self.current_page + 1),
+            state="normal" if self.current_page < total_pages else "disabled"
+        )
+        next_button.pack(side="left")
+
     def _edit_exercise(self, exercise: ExerciseModel):
         if not self.controller.is_admin():
             return
-        
+
         modal = ExerciseCreateModal(self, self.controller, exercise)
         self.wait_window(modal)
         if self.current_diff:
-            self.show_exercise_list(self.current_diff)
+            self.show_exercise_list(self.current_diff, page=self.current_page)
 
     def _create_new_exercise(self):
-        modal = ExerciseCreateModal(self, self.controller, exercise=None, default_diff=self.current_diff.id if self.current_diff else None)
+        modal = ExerciseCreateModal(
+            self, 
+            self.controller, 
+            exercise=None, 
+            default_diff=self.current_diff.id if self.current_diff else None
+        )
         self.wait_window(modal)
 
         if self.current_diff:
-            self.show_exercise_list(self.current_diff)
+            self.show_exercise_list(self.current_diff, page=self.current_page)
 
     def _access_exercise(self, exercise: ExerciseModel):
         exercise_screen = self.controller._frames.get(ScreenNames.EXERCISE.value)
@@ -206,7 +269,11 @@ class MainScreen(MFrame[AppProtocol]):
 
 # Componentes
 
-def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callable[[ExerciseDifficulty], None]) -> ttk.Frame:
+def diff_card(
+    parent: tk.Misc, 
+    diff: ExerciseDifficulty, 
+    show_exercises: Callable[[ExerciseDifficulty], None]
+) -> ttk.Frame:
     card = ttk.Frame(parent, padding=15, relief="groove")
     card.columnconfigure(0, weight=1)
     card.rowconfigure(1, weight=0)
@@ -222,9 +289,10 @@ def diff_card(parent: tk.Misc, diff: ExerciseDifficulty, show_exercises: Callabl
     ttk.Button(
         card, 
         text="Ver Exercícios", 
-        command=lambda : show_exercises(diff)
+        command=lambda: show_exercises(diff)
     ).grid(row=2, sticky="e")
     return card
+
 
 def exercise_row(
     controller: AppProtocol, 
@@ -236,12 +304,19 @@ def exercise_row(
 ) -> ttk.Frame:
     row_frame = ttk.Frame(parent, padding=(5, 8))
     row_frame.pack(fill="x")
-    row_frame.columnconfigure(0, weight=0)
-    row_frame.columnconfigure(1, weight=3)
-    row_frame.columnconfigure(2, weight=1)
-    row_frame.columnconfigure(3, weight=0)
+    
+    is_admin = controller.is_admin()
 
-    author_display = author_name
+    row_frame.columnconfigure(0, weight=0) # resolvido
+    if is_admin:
+        row_frame.columnconfigure(1, weight=1) # status
+        row_frame.columnconfigure(2, weight=3) # título
+        row_frame.columnconfigure(3, weight=2) # autor
+        row_frame.columnconfigure(4, weight=2) # ações
+    else:
+        row_frame.columnconfigure(1, weight=3) # título
+        row_frame.columnconfigure(2, weight=2) # autor
+        row_frame.columnconfigure(3, weight=1) # ações
 
     user = controller.logged_user
     is_done: bool = False
@@ -249,18 +324,23 @@ def exercise_row(
         assert user.id
         assert exercise.id
         is_done = controller.server.is_exercise_done(user.id, exercise.id)
-    
+
     # confie em mim, eu estou usando windows + . para adicionar estes emojis !!
     default_text(row_frame, "☑️" if is_done else "✖️").grid(row=0, column=0, sticky="w")
-    default_text(row_frame, exercise.title).grid(row=0, column=1, sticky="w")
-    default_text(row_frame, author_display).grid(row=0, column=2, sticky="w")
+    col_offset = 0
+    if is_admin:
+        valid_status = "✅" if exercise.is_valid else "❌"
+        default_text(row_frame, valid_status).grid(row=0, column=1, sticky="w")
+        col_offset = 1
+
+    default_text(row_frame, exercise.title).grid(row=0, column=1 + col_offset, sticky="w")
+    default_text(row_frame, author_name).grid(row=0, column=2 + col_offset, sticky="e")
 
     button_frame = ttk.Frame(row_frame)
-    button_frame.grid(row=0, column=3, sticky="e")
-    ttk.Button(button_frame, text="Ver Exercício", command=lambda : access_exercise(exercise)).pack(side="right")
+    button_frame.grid(row=0, column=3 + col_offset, sticky="e")
+    ttk.Button(button_frame, text="Ver Exercício", command=lambda: access_exercise(exercise)).pack(side="right")
 
-    if controller.is_admin():
-        # TODO:
-        ttk.Button(button_frame, text="Editar", command=lambda : edit_exercise(exercise)).pack(side="right")
+    if is_admin:
+        ttk.Button(button_frame, text="Editar", command=lambda: edit_exercise(exercise)).pack(side="right")
 
     return row_frame
