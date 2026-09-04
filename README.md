@@ -22,7 +22,8 @@ Eu comecei a desenvolver esse projeto no dia 24 de agosto, mas eu já tinha dive
 ### Arquitetura do projeto:
 O projeto foi inicialmente desenvolvido pensando apenas no [servidor](/src/leety/server) e depois eu acabei desenvolvendo uma interface usando o tkinter conforme proposto nas aulas.
 #### Estrutura de pastas
-`OBS: leety era o nome do projeto até hoje (04/09/2026), eu já tinha pensado em codei, mas acabei mantendo as pastas como leety`
+###### OBS: leety era o nome do projeto até hoje (04/09/2026), eu já tinha pensado em codei, mas acabei mantendo as pastas como leety
+###### O nome leety vem de leetcode só que sem "code" e com "y" no final porque o meu primeiro projeto tinha "y" no final também (windy)
 ```
 src/
     leety/
@@ -35,6 +36,17 @@ src/
             -> Tudo que é específico do servidor
             -> por exemplo: sandbox_controller, controllers para acessar o banco, etc
 ```
+
+#### Implementação dos exercícios:
+Os exercícios foram implementados seguindo o conceito de que não faz sentido você ter que fazer `n0 = int(input())` (eu acho bem chato ter que fazer isso). Dessa forma, eu acabei implementando um sistema que é baseado em classes e funções semelhantes à um `public static void main()` do Java.
+O sistema de exercício consiste em duas classes principais:
+- **[Generator](src/leety/common/exercise/templates/generator.py)**: que **implementa duas funções: `generate_inputs` e `solver`**. Como os nomes já inferem, a primeira deve gerar valores de entrada que serão passados ao `solver` para gerar resultados válidos*. A partir disso, **o servidor** (mais especificamente o [ExerciseController](src/leety/server/exercise/exercise_controller.py)) **gera pares de [TestCase](src/leety/server/exercise/base_generator.py)** que são armazenados dentro de um arquivo `.json` (`samples.json` dentro da pasta do exercício em `tables/uploads/exercises`) e **posteriormente usados para validar a solução do usuário**;
+- **[Solution](src/leety/common/exercise/templates/solution.py)**: que apresenta **a função `solve` implementada pelo usuário** (teoricamente**), **que deve retornar o valor correto** para o exercício **com base na entrada recebida**. Esse arquivo é um template só pra ter uma noção do formato da classe, o arquivo que é enviado para o usuário quando ele seleciona para "Criar Solução" é gerado pelo [ExerciseController](src/leety/server/exercise/exercise_controller.py) e pelo [TemplateUtils](src/leety/server/exercise/template_utils.py).
+###### * validade é um conceito relativo porque é 100% dependente do exercício
+###### ** "teoricamente" porque se o usuário não quiser, ele pode fazer o que bem entender no arquivo de solução (a menos que alguma exceção seja elevada e cause um resultado de RuntimeError)
+Essas duas classes + a implementação do banco de dados (e os controllers) é o que forma o Codei de fato. Porque no fim das contas a interface não é obrigatória para o sistema funcionar.
+É claro que existem outras etapas, como os `runners` que executam os códigos implementados pelos usuários e admins, mas não tem muito o que falar sobre eles. São basicamente arquivos que importam o código do usuário e chamam as funções. Esses runners são copiados para dentro da pasta do `job` dentro da "sandbox" e um outro arquivo ([CodeRunner](src/leety/common/utils/code_runner.py)) cria um subprocesso para executar o ``runner``. Entretanto, o básico para funcionar é essas duas classes.
+
 #### Implementação do banco de dados:
 Eu, particularmente, gostei muito da minha implementação do banco de dados. A ideia era fazer uma versão melhorada do meu "primeiro banco de dados" (implementado no [Bootcamp de 2024](https://github.com/yDewolf/Windy)), como aquele banco era baseado em arquivos .csv, eu mantive a mesma ideia só que explorei mais os conceitos que aprendi sobre typesafety e tipagem em python.
 As principais classes do banco são:
@@ -44,7 +56,7 @@ As principais classes do banco são:
 - **[Table](src/leety/common/internals/database/protocols/csv_table.py):** é outra classe "abstrata" que deve ser instanciada usando anotação (`Table[ModelType]`). As `Table`s **armazenam vários modelos do tipo `ModelType`** dentro de uma lista, além de fazer outras coisas úteis como implementar funções de `get` (chamado de `match_linear` dentro do código), `to_csv_str`
 - **[IndexableTable](src/leety/common/internals/database/protocols/csv_table.py):** é que semelhante ao `IndexableFieldModel`, uma classe que herda `Table` para implementar **funções baseada em indexação de valores**. Essa classe oferece funções como: `get_field_by_id`, `match_searchable_fields`, entre outras.
 - **[Database](src/leety/common/internals/database/csvbase.py):** é uma classe semelhante ao `FieldModel` no que tange a funcionalidades, basicamente ela **armazena tabelas** que são descritas em subclasses (que herdam `_Database`).
-###### (`SearchableField` é uma classe que não implementa nada e só é usada para checar se um `Field` deve ser indexado como "pesquisável") 
+###### `SearchableField` é uma classe que não implementa nada e só é usada para checar se um `Field` deve ser indexado como "pesquisável"
 
 #### Implementação do "Servidor":
 Inicialmente eu gostaria de implementar um sistema 100% backend, sem interface alguma, mas que expusesse uma API Restful HTTP para que _clients_ pudessem acessar e modificar as coisas. 
