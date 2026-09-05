@@ -1,9 +1,8 @@
 from pathlib import Path
 from PIL import Image
 
-import leety.client as client
-
-ASSETS_FOLDER: Path = Path(client.__file__).resolve().parent.parent.parent.parent / "assets"
+from leety.common.utils.path_utils import ROOT_PATH
+ASSETS_FOLDER: Path = ROOT_PATH / "assets"
 assert ASSETS_FOLDER.exists(), f"A pasta de assets não existe ou o caminho está errado {ASSETS_FOLDER}"
 
 UNIMAR_LOGO_PATH = ASSETS_FOLDER / "unimar_logo.png"

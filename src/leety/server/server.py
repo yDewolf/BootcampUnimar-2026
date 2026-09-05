@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 from typing import Optional
 import threading
 import time
@@ -8,6 +9,7 @@ from leety.common.database.leety_db import LeetyDatabase
 from leety.common.database.models.exercise_model import BaseExerciseModel, ExerciseAttempt, ExerciseDifficulty, ExerciseModel
 from leety.common.database.models.user_model import UserModel
 from leety.common.dto.attempt_result import AttemptResult
+from leety.common.utils.path_utils import ROOT_PATH
 from leety.server.exercise.exercise_controller import ExerciseController
 from leety.server.exercise.solution_controller import SolutionController
 from leety.server.internal.router_protocol import RouterProtocol
@@ -17,9 +19,9 @@ from leety.server.user.user_controller import UserController
 import leety.server.exercise as exercise
 import leety.common as common
 
-EXERCISE_FOLDER: Path = Path(exercise.__file__).resolve().parent
+EXERCISE_FOLDER: Path = ROOT_PATH / "_internal" / "exercise" if getattr(sys, "frozen", False) else  Path(exercise.__file__).resolve().parent 
 INTERNAL_TEMPLATES_FOLDER: Path = EXERCISE_FOLDER / "internal_templates"
-GENERATOR_TEMPLATE_PATH: Path = Path(common.__file__).resolve().parent / "exercise" / "templates" / "generator.py"
+GENERATOR_TEMPLATE_PATH: Path = ROOT_PATH / "exercise" / "templates" / "generator.py" if getattr(sys, "frozen", False) else Path(common.__file__).resolve().parent / "exercise" / "templates" / "generator.py"
 DATABASE_SAVE_INTERVAL: float = 5 * 60
 # basicamente um wrapper com os controllers necessários para fazer as coisas funcionarem
 
