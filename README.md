@@ -9,7 +9,7 @@ A ideia do projeto é implementar a principal funcionalidade desse tipo de plata
 ## Como rodar o projeto:
 Primeiro **instale o projeto** usando ``pip``
 ```
-pip install .
+pip install -e .
 ```
 Depois **execute o main** do client:
 ```
