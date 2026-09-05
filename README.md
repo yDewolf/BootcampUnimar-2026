@@ -15,6 +15,7 @@ Depois **execute o main** do client:
 ```
 python src/leety/client/main.py
 ```
+### Caso você tenha problema ao rodar o projeto, certifique-se de que você rodou `pip install -e .` ao invés de `pip install .`
 
 ## Aprendizados:
 ###### Nessa seção vou registrar o que aprendi com esse projeto
